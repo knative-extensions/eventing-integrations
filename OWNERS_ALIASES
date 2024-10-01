@@ -1,237 +1,246 @@
-# This file is auto-generated from peribolos
+# This file is auto-generated from peribolos.
+# Do not modify this file, instead modify peribolos/knative-extensions.yaml
 
 aliases:
-  api-core-wg-leads:
-  - dprotaso
-  async-component-approvers:
-  - beemarie
-  - julz
-  - maximilien
-  autoscaling-wg-leads:
-  - markusthoemmes
-  - vagababov
+  autoscaler-keda-approvers:
+  - ReToCode
+  - skonto
+  backstage-plugins-reviewers:
+  - aliok
+  - cali0707
+  - leo6leo
+  - pierdipi
+  backstage-plugins-writers:
+  - aliok
+  - cali0707
+  - leo6leo
+  - pierdipi
   client-wg-leads:
-  - navidshaikh
+  - dsimansk
   - rhuss
   client-writers:
-  - navidshaikh
+  - dsimansk
   - rhuss
-  control-protocol-approvers:
-  - devguyio
-  - grantr
-  - lionelvillard
-  - matzew
-  - slinkydeveloper
-  - vaikas
-  delivery-wg-leads:
-  - matzew
-  - slinkydeveloper
   discovery-approvers:
   - lberk
-  - n3wscott
-  docs-wg-leads:
-  - abrennan89
   docs-writers:
-  - abrennan89
-  eventing-autoscaler-keda-approvers:
-  - zroubalik
+  - csantanapr
+  - retocode
+  - skonto
+  eventing-autoscaler-keda-approvers: []
   eventing-awssqs-approvers:
   - lberk
-  eventing-camel-approvers:
-  - nicolaferraro
+  - matzew
   eventing-ceph-approvers:
   - lberk
+  - matzew
   eventing-couchdb-approvers:
   - lberk
   - lionelvillard
+  - matzew
   eventing-github-approvers:
   - lberk
+  - matzew
   eventing-gitlab-approvers:
-  - antoineco
-  - lberk
-  - sebgoa
-  - tzununbekov
-  eventing-kafka-approvers:
-  - aliok
-  - davyodom
   - lberk
   - matzew
-  - phamilton
-  - steven0711dong
-  - travis-minke-sap
-  eventing-kafka-broker-approvers:
+  - sebgoa
+  eventing-kafka-approvers:
+  - aliok
+  - lberk
+  - matzew
   - pierDipi
-  - slinkydeveloper
-  eventing-kafka-mtsource-approvers:
-  - steven0711dong
+  eventing-kafka-broker-approvers:
+  - aliok
+  - matzew
+  - pierDipi
+  eventing-kafka-broker-reviewers:
+  - Leo6Leo
+  - cali0707
+  eventing-kafka-writers: []
+  eventing-kogito-approvers:
+  - ricardozanini
   eventing-natss-approvers:
-  - devguyio
+  - astelmashenko
+  - dan-j
   eventing-prometheus-approvers:
   - lberk
+  - matzew
   eventing-rabbitmq-approvers:
-  - n3wscott
-  - sbawaska
-  - vaikas
+  - Zerpet
+  - ikavgo
+  - mkuratczyk
   eventing-redis-approvers:
   - aavarghese
   - lionelvillard
+  - matzew
+  eventing-reviewers:
+  - Leo6Leo
+  - cali0707
+  - creydr
   eventing-wg-leads:
-  - devguyio
-  - grantr
-  - lionelvillard
-  - vaikas
+  - pierDipi
   eventing-writers:
-  - devguyio
-  - grantr
+  - Leo6Leo
+  - aliok
+  - cali0707
+  - creydr
   - lionelvillard
   - matzew
-  - n3wscott
-  - slinkydeveloper
-  - vaikas
+  - pierDipi
+  func-tastic-approvers:
+  - lance
+  - lkingland
+  - matejvasek
+  - nainaz
+  - salaboy
+  functastic-writers:
+  - lance
+  - lkingland
+  - matejvasek
+  - matzew
+  - nainaz
+  - salaboy
+  function-runtime-approvers:
+  - lance
+  - lkingland
+  - matejvasek
+  - matzew
+  - nainaz
+  - salaboy
+  function-runtime-writers:
+  - lance
+  - lkingland
+  - matejvasek
+  - matzew
+  - nainaz
+  - salaboy
   homebrew-kn-plugins-approvers:
   - dsimansk
-  - maximilien
   - rhuss
   kn-plugin-admin-approvers:
-  - maximilien
-  - navidshaikh
+  - dsimansk
   - rhuss
-  - zhanggbj
-  kn-plugin-diag-approvers:
-  - cdlliuy
-  - maximilien
-  - navidshaikh
   kn-plugin-event-approvers:
   - cardil
   - rhuss
-  kn-plugin-migration-approvers:
-  - maximilien
-  - zhangtbj
+  kn-plugin-operator-approvers:
+  - dsimansk
+  - houshengbo
+  - rhuss
+  kn-plugin-quickstart-approvers:
+  - dsimansk
+  - psschwei
+  - rhuss
   kn-plugin-sample-approvers:
-  - maximilien
-  - navidshaikh
+  - dsimansk
   - rhuss
   kn-plugin-service-log-approvers:
   - rhuss
   kn-plugin-source-kafka-approvers:
   - daisy-ycguo
   - dsimansk
-  - maximilien
-  - navidshaikh
   - rhuss
   kn-plugin-source-kamelet-approvers:
   - christophd
-  - nicolaferraro
   - rhuss
   knative-admin:
-  - bsnchan
-  - evankanderson
-  - fallback-notification-blocker
-  - grantr
-  - knative-prow-releaser-robot
-  - knative-prow-robot
-  - knative-test-reporter-robot
-  - markusthoemmes
-  - mbehrendt
-  - pmorie
-  - rhuss
-  - tcnghia
-  - thisisnotapril
-  - vaikas
-  knative-milestone-maintainers:
-  - ZhiminXiang
-  - akashrv
-  - aslom
-  - chaodaiG
-  - csantanapr
-  - evankanderson
-  - grantr
-  - josephburnett
-  - k4leung4
-  - lionelvillard
-  - markusthoemmes
-  - mikehelmick
-  - n3wscott
-  - nak3
-  - navidshaikh
-  - rhuss
-  - slinkydeveloper
-  - tcnghia
-  - vagababov
-  - vaikas
-  knative-release-leads:
-  - fallback-notification-blocker
-  - tcnghia
-  - vaikas
-  knative-robots:
-  - knative-prow-releaser-robot
-  - knative-prow-robot
-  - knative-test-reporter-robot
-  kperf-approvers:
-  - maximilien
-  - zhanggbj
-  net-certmanager-approvers:
-  - ZhiminXiang
-  net-contour-approvers:
+  - aliok
+  - cardil
+  - davidhadas
   - dprotaso
-  net-http---approvers:
-  - tcnghia
-  net-ingressv--approvers:
-  - markusthoemmes
-  - nak3
+  - dsimansk
+  - evankanderson
+  - knative-automation
+  - knative-prow-releaser-robot
+  - knative-prow-robot
+  - knative-prow-updater-robot
+  - knative-test-reporter-robot
+  - nainaz
+  - psschwei
+  - salaboy
+  - upodroid
+  knative-release-leads: []
+  knative-robots:
+  - knative-automation
+  - knative-prow-releaser-robot
+  - knative-prow-robot
+  - knative-prow-updater-robot
+  - knative-test-reporter-robot
+  net-contour-approvers:
+  - KauzClay
+  - dprotaso
+  net-gateway-api-approvers:
+  - dprotaso
+  net-http01-approvers: []
   net-istio-approvers:
-  - JRBANCEL
-  - ZhiminXiang
-  - nak3
-  - vagababov
+  - skonto
   net-kourier-approvers:
-  - davidor
-  - jmprusi
-  networking-wg-leads:
-  - ZhiminXiang
-  - nak3
-  - tcnghia
+  - skonto
   operations-wg-leads:
   - houshengbo
   operations-writers:
-  - houshengbo
-  productivity-wg-leads:
-  - chizhg
-  - n3wscott
-  productivity-writers:
-  - chizhg
-  - n3wscott
-  security-wg-leads:
-  - evankanderson
-  - julz
-  security-writers:
-  - evankanderson
-  - julz
-  serving-writers:
-  - ZhiminXiang
   - dprotaso
-  - markusthoemmes
-  - nak3
-  - tcnghia
-  - vagababov
-  source-wg-leads:
-  - lionelvillard
-  - n3wscott
-  steering-committee:
-  - bsnchan
-  - mbehrendt
-  - pmorie
-  - thisisnotapril
-  - vaikas
-  technical-oversight-committee:
-  - evankanderson
-  - fallback-notification-blocker
-  - grantr
-  - markusthoemmes
+  - houshengbo
+  - upodroid
+  productivity-leads:
+  - cardil
+  - upodroid
+  productivity-wg-leads:
+  - cardil
+  - upodroid
+  productivity-writers:
+  - cardil
+  - upodroid
+  security-guard-approvers:
+  - davidhadas
+  - psschwei
   - rhuss
+  security-wg-leads:
+  - davidhadas
+  - evankanderson
+  security-writers:
+  - davidhadas
+  - evankanderson
+  serving-approvers:
+  - ReToCode
+  - skonto
+  serving-progressive-rollout-approvers:
+  - alexagriffith
+  - houshengbo
+  - sukumargaonkar
+  - yuzisun
+  serving-reviewers:
+  - izabelacg
+  - retocode
+  - skonto
+  serving-triage:
+  - izabelacg
+  - retocode
+  - skonto
+  serving-wg-leads:
+  - dprotaso
+  serving-writers:
+  - ReToCode
+  - dprotaso
+  - skonto
+  steering-committee:
+  - aliok
+  - evankanderson
+  - nainaz
+  - salaboy
+  technical-oversight-committee:
+  - davidhadas
+  - dprotaso
+  - dsimansk
+  - psschwei
   ux-wg-leads:
-  - csantanapr
-  - omerbensaadon
+  - cali0707
+  - leo6leo
+  - mmejia02
+  - zainabhusain227
   ux-writers:
-  - csantanapr
-  - omerbensaadon
+  - cali0707
+  - leo6leo
+  - mmejia02
+  - zainabhusain227
