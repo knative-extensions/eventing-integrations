@@ -1,0 +1,406 @@
+= Knative connectors
+
+Knative eventing connectors based on https://camel.apache.org/camel-kamelets/[Apache Camel Kamelets].
+Each connector project is able to act as a source or sink for the Knative eventing broker.
+The projects create container images that get referenced in a Knative `IntegrationSource` or `IntegrationSink` custom resource.
+
+== Create new connectors
+
+You can use a Maven archetype to generate new connector modules in this project.
+The archetype should give you a good start into the new connector project as it generates the basic folder structure and some source files.
+
+You need to build the Maven archetype locally first before using it for the first time:
+
+[source,shell]
+----
+mvn install -pl :kn-connector-archetype-source
+----
+
+The command creates the Maven archetype artifact on your local machine, so you can use it in the Maven `archetype:generate` command:
+
+NOTE: The Maven archetype `kn-connector-archetype-source` creates a new IntegrationSource connector. Please use `kn-connector-archetype-sink` to create a new IntegrationSink connector project.
+
+[source,shell]
+----
+mvn archetype:generate \
+ -DarchetypeGroupId=dev.knative.eventing \
+ -DarchetypeArtifactId=kn-connector-archetype-source \
+ -DarchetypeVersion=1.0-SNAPSHOT
+----
+
+This command starts the archetype generation in interactive mode.
+In interactive mode the prompt asks you to provide some more information such as the Kamelet name that you want to use in this kn-connector source.
+Also, you may want to customize the Apache Camel component name that is used in the Kamelet (e.g. `aws-s3` as Kamelet name and `aws2-s3` as Apache Camel component name).
+
+After the `archetype:generate` command has finished you will find a new project folder that is ready to be built with Maven.
+
+You can also avoid the interactive mode when specifying all input parameters:
+
+[source,shell]
+----
+mvn archetype:generate \
+ -DarchetypeGroupId=dev.knative.eventing \
+ -DarchetypeArtifactId=kn-connector-archetype-source \
+ -DarchetypeVersion=1.0-SNAPSHOT \
+ -DartifactId=aws-s3-source \
+ -Dkamelet-name=aws-s3 \
+ -Dcomponent-name=aws2-s3
+----
+
+Each connector requires a set of Camel Quarkus dependencies in the Maven POM.
+After the 1st build of the new Maven project you can review a generated list of dependencies in `target/metadata/dependencies.json`.
+This generated info gives you a list of dependencies that you should consider adding to the Maven project POM.
+
+Also, the metadata folder includes the information about supported Kamelet properties (`target/metadata/properties.json`).
+You may review this list of properties and decide which one of these the IntegrationSource CRD should include in its spec.
+The generated info includes all property specifications such as enumeration constraints or formats.
+
+NOTE: Each connector project generates an AsciiDoc file in its project root folder (`properties.adoc`) which holds a list of all supported Kamelet properties. This includes the environment variable name that you may set as part of a connector deployment in order to overwrite one of these Kamelet properties
+
+NOTE: The connector project contains a generated properties specification (`properties.yaml`) that you can use as a base for adding the connector to the IntegrationSource CRD specification as typed API.
+
+The generation of the info and spec files is done automatically when the connector Maven project is built.
+
+== Build the container image
+
+Each kn-connector project uses Quarkus in combination with Apache Camel, Kamelets and Maven as a build tool.
+
+You can use the following Maven commands to build the container image.
+
+[source,shell]
+----
+./mvnw package -Dquarkus.container-image.build=true
+----
+
+The container image uses the project version and image group defined in the Maven POM.
+You can customize the image group with `-Dquarkus.container-image.group=my-group`.
+
+By default, the container image looks like this:
+
+[source,text]
+----
+quay.io/openshift-knative/kn-connector-{{source-name}}:1.0-SNAPSHOT
+----
+
+The project leverages the Quarkus Kubernetes and container image extensions so you can use Quarkus properties and configurations to customize the resulting container image.
+
+See these extensions for details:
+* https://quarkus.io/guides/deploying-to-kubernetes
+* https://quarkus.io/guides/container-image
+
+== Push the container image
+
+[source,shell]
+----
+./mvnw package -Dquarkus.container-image.build=true -Dquarkus.container-image.push=true
+----
+
+Pushes the image to the image registry defined in the Maven POM.
+The default registry is https://quay.io/[quay.io].
+
+You can customize the registry with `-Dquarkus.container-image.registry=localhost:5001` (e.g. when connecting to local Kind cluster).
+
+In case you want to connect with a local cluster like Kind or Minikube you may also need to set `-Dquarkus.container-image.insecure=true`.
+
+== Kubernetes manifest
+
+The build produces a Kubernetes manifest in (`target/kubernetes/kubernetes.yml`).
+This manifest holds all resources required to run the application on your Kubernetes cluster.
+
+You can customize the Kubernetes resources in `src/main/kubernetes/kubernetes.yml`.
+This is being used as a basis and Quarkus will generate the final manifest in `target/kubernetes/kubernetes.yml` during the build.
+
+== Deploy to Kubernetes
+
+You can deploy the application to Kubernetes with:
+
+[source,shell]
+----
+./mvnw package -Dquarkus.kubernetes.deploy=true
+----
+
+This deploys the application to the current Kubernetes cluster that you are connected to (e.g. via `kubectl config set-context --current` and `kubectl config view --minify`).
+
+You may change the target namespace with `-Dquarkus.kubernetes.namespace=my-namespace`.
+
+== Configuration
+
+Each Kamelet defines a set of properties.
+The user is able to customize these properties when running a connector deployment.
+
+=== Environment variables
+
+You can customize the properties via environment variables on the deployment:
+
+The environment variables that overwrite properties on the Kamelet source follow a naming convention:
+
+* CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}={{PROPERTY_VALUE}}
+
+The name represents the name of the Kamelet as defined in the https://camel.apache.org/camel-kamelets/[Kamelet catalog].
+
+The environment variables may be set as part of the Kubernetes deployment or as an alternative on the Knative ContainerSource:
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: kamelet-source
+  namespace: knative-samples
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/openshift-knative/kn-connector-aws-s3-source:1.0
+          name: timer
+          env:
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_BUCKETNAMEORARN
+              value: "arn:aws:s3:::mybucket"
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_REGION
+              value: "eu-north-1"
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+----
+
+You can also set the environment variable on the running deployment:
+
+[source,shell]
+----
+kubectl set env deployment/kn-connector-{{source-name}} CAMEL_KAMELET_TIMER_SOURCE_MESSAGE="I updated it..."
+----
+
+=== ConfigMap and Secret refs
+
+You may also mount a configmap/secret to overwrite Kamelet properties with values from the configmap/secret resource.
+
+As the Kamelet properties are configured viw environment variables on the ContainerSource you can also use values referencing a configmap or secret.
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: kamelet-source
+  namespace: knative-samples
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/openshift-knative/kn-connector-aws-s3-source:1.0
+          name: timer
+          env:
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_BUCKETNAMEORARN
+              value: "arn:aws:s3:::mybucket"
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_REGION
+              value: "eu-north-1"
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_ACCESSKEY
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: aws.s3.accessKey
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_SECRETKEY
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: aws.s3.secretKey
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+----
+
+The example above references a secret called `my-secret` and loads the keys `aws.s3.accessKey` and `aws.s3.secretKey`.
+
+=== ConfigMap/Secret via Apache Camel property function
+
+You can also load and reference the values of the configmap/secret in the environment variables following Apache Camel expressions:
+
+Given a configmap named `my-aw-s3-source-config` in Kubernetes that has two entries:
+
+.my-aw-s3-source-config
+[source,properties]
+----
+region = Knative rocks!
+period = 3000
+----
+
+You can reference the values of the configmap in the environment variables like this:
+
+* CAMEL_KAMELET_TIMER_SOURCE_MESSAGE={{configmap:kn-source-config/message}}
+* CAMEL_KAMELET_TIMER_SOURCE_PERIOD={{configmap:kn-source-config/period}}
+
+The configmap property function in Apache Camel follows this general syntax:
+
+[source,text]
+----
+configmap:name/key[:defaultValue]
+----
+
+This means you can also set a default value in case the configmap should not be present.
+
+[source,text]
+----
+configmap:kn-source-config/period:5000
+----
+
+The configmap and secret based configuration requires to add a volume and volume-mount configuration to the connector deployment.
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timer-source
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: timer-source
+      app.kubernetes.io/version: 1.0-SNAPSHOT
+  template:
+    spec:
+      containers:
+        - image: localhost:5001/openshift-knative/timer-source:1.0-SNAPSHOT
+          imagePullPolicy: Always
+          name: timer-source
+          env:
+            - name: CAMEL_KAMELET_TIMER_SOURCE_MESSAGE
+              value: "{{configmap:kn-source-config/message}}"
+            - name: CAMEL_KAMELET_TIMER_SOURCE_PERIOD
+              value: "{{configmap:kn-source-config/period:1000}}"
+          volumeMounts:
+            - mountPath: /etc/camel/conf.d/_configmaps/kn-source-config
+              name: timer-source-config
+              readOnly: true
+      volumes:
+        - configMap:
+            name: my-timer-source-config
+          name: kn-source-config
+----
+
+Camel is able to resolve the configmap mount path given in the volume mount.
+The mount path is configurable via `application.properties` in the connector project:
+
+* camel.kubernetes-config.mount-path-configmaps=/etc/camel/conf.d/_configmaps/kn-source-config
+* camel.kubernetes-config.mount-path-secrets=/etc/camel/conf.d/_secrets/kn-source-config
+
+The mount path configured on the Kubernetes deployment should match the configuration in the `application.properties`.
+
+Instead of settings the mount paths statically in the `application.properties` you can also set these via environment variables on the
+Kubernetes deployment.
+
+* CAMEL_K_MOUNT_PATH_CONFIGMAPS=/etc/camel/conf.d/_configmaps/kn-source-config
+* CAMEL_K_MOUNT_PATH_SECRETS=/etc/camel/conf.d/_secrets/kn-source-config
+
+The same mechanism applies to mounting and configuring Kubernetes secrets.
+The syntax for referencing a secret value via Apache Camel property function is as follows:
+
+[source,text]
+----
+secret:name/key[:defaultValue]
+----
+
+This means you can overwrite Kamelet properties with the values from the secret like this:
+
+* CAMEL_KAMELET_TIMER_SOURCE_MESSAGE=secret:kn-source-config/msg
+* CAMEL_KAMELET_TIMER_SOURCE_PERIOD=secret:kn-source-config/period
+
+== CloudEvent attributes
+
+== Source attributes
+
+Each connector produces/consumes events in CloudEvent data format.
+The connector uses a set of default values for the CloudEvent attributes:
+
+* _ce-type_: dev.knative.connector.event.{{source-type}}
+* _ce-source_: dev.knative.eventing.{{source-name}}
+* _ce-subject_: {{source-name}}
+
+You can customize the CloudEvent attributes with setting environment variables on the deployment.
+
+* KN_CONNECTOR_CE_OVERRIDE_TYPE=value
+* KN_CONNECTOR_CE_OVERRIDE_SOURCE=value
+* KN_CONNECTOR_CE_OVERRIDE_SUBJECT=value
+
+You can set the CE_OVERRIDE attributes on a running deployment.
+
+[source,shell]
+----
+kubectl set env deployment/kn-connector-{{source-name}} KN_CONNECTOR_CE_OVERRIDE_TYPE=custom-type
+----
+
+You may also use the SinkBinding `K_CE_OVERRIDES` environment variable set on the deployment.
+
+=== Sink attributes
+
+Each connector sink consumes events in CloudEvent data format.
+By default, the connector receives all events on the Knative broker.
+
+You may want to specify filters on the CloudEvent attributes so that the connector selectively consumes events from the broker.
+Just configure the Knative trigger to filter based on attributes:
+
+.Knative trigger
+[source,yaml]
+----
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  annotations:
+    eventing.knative.dev/creator: kn-connectors
+  labels:
+    eventing.knative.dev/connector: log-sink
+    eventing.knative.dev/broker: default
+  name: kn-connector-log-sink
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: dev.knative.connector.event.timer
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: kn-connector-log-sink
+    uri: /events
+----
+
+The trigger for example filters the events by its type `ce-type=dev.knative.connector.event.timer`.
+
+== Dependencies
+
+The required Camel dependencies need to be added to the Maven POM before building and deploying.
+You can use one of the Kamelets available in the https://camel.apache.org/camel-kamelets/[Kamelet catalog] as a source or sink in this connector.
+
+Typically, the Kamelet is backed by a Quarkus Camel extension component dependency that needs to be added to the Maven POM.
+The Kamelets in use may list additional dependencies that we need to include in the Maven POM.
+
+== Custom Kamelets
+
+Creating a new kn-connector project is very straightforward.
+You may copy one of the sample projects and adjust the reference to the Kamelets.
+
+Also, you can use the Camel JBang kubernetes export functionality to generate a Maven project from a given Pipe YAML file.
+
+[source,shell]
+----
+camel kubernetes export my-pipe.yaml --runtime quarkus --dir target
+----
+
+This generates a Maven project that you can use as a starting point for the kn-connector project.
+
+The connector is able to reference all Kamelets that are part of the https://camel.apache.org/camel-kamelets/[default Kamelet catalog].
+
+In case you want to use a custom Kamelet, place the `*.kamelet.yaml` file into `src/main/resources/kamelets`.
+The Kamelet will become part of the built container image, you can just reference the Kamelet in the Pipe YAML file as a source or sink.
+
+== More configuration options
+
+For more information about Apache Camel Kamelets and their individual properties see https://camel.apache.org/camel-kamelets/.
+
+For more detailed description of all container image configuration options please refer to the Quarkus Kubernetes extension and the container image guides:
+
+* https://quarkus.io/guides/deploying-to-kubernetes
+* https://quarkus.io/guides/container-image

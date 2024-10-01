@@ -1,0 +1,129 @@
+spec:
+  type: object
+  properties:
+    aws:
+      type: object
+      properties:
+        s3:
+          type: object
+          properties:
+            bucketNameOrArn:
+              type: string
+              title: Bucket Name
+              description: The S3 Bucket name or Amazon Resource Name (ARN).
+            deleteAfterRead:
+              type: boolean
+              title: Auto-delete Objects
+              description: Specifies to delete objects after consuming them.
+              default: true
+            moveAfterRead:
+              type: boolean
+              title: Move Objects After Delete
+              description: Move objects from S3 bucket to a different bucket after
+                they have been retrieved.
+              default: false
+            destinationBucket:
+              type: string
+              title: Destination Bucket
+              description: Define the destination bucket where an object must be moved
+                when moveAfterRead is set to true.
+            destinationBucketPrefix:
+              type: string
+              title: Destination Bucket Prefix
+              description: Define the destination bucket prefix to use when an object
+                must be moved, and moveAfterRead is set to true.
+            destinationBucketSuffix:
+              type: string
+              title: Destination Bucket Suffix
+              description: Define the destination bucket suffix to use when an object
+                must be moved, and moveAfterRead is set to true.
+            accessKey:
+              type: string
+              title: Access Key
+              description: The access key obtained from AWS.
+            secretKey:
+              type: string
+              title: Secret Key
+              description: The secret key obtained from AWS.
+            region:
+              type: string
+              title: AWS Region
+              description: The AWS region to access.
+            autoCreateBucket:
+              type: boolean
+              title: Autocreate Bucket
+              description: Specifies to automatically create the S3 bucket.
+              default: false
+            prefix:
+              type: string
+              title: Prefix
+              description: The AWS S3 bucket prefix to consider while searching.
+              example: folder/
+            ignoreBody:
+              type: boolean
+              title: Ignore Body
+              description: If true, the S3 Object body is ignored. Setting this to
+                true overrides any behavior defined by the `includeBody` option. If
+                false, the S3 object is put in the body.
+              default: false
+            useDefaultCredentialsProvider:
+              type: boolean
+              title: Default Credentials Provider
+              description: If true, the S3 client loads credentials through a default
+                credentials provider. If false, it uses the basic authentication method
+                (access key and secret key).
+              default: false
+            useProfileCredentialsProvider:
+              type: boolean
+              title: Profile Credentials Provider
+              description: Set whether the S3 client should expect to load credentials
+                through a profile credentials provider.
+              default: false
+            useSessionCredentials:
+              type: boolean
+              title: Session Credentials
+              description: Set whether the S3 client should expect to use Session
+                Credentials. This is useful in situation in which the user needs to
+                assume a IAM role for doing operations in S3.
+              default: false
+            profileCredentialsName:
+              type: string
+              title: Profile Credentials Name
+              description: If using a profile credentials provider this parameter
+                will set the profile name.
+            sessionToken:
+              type: string
+              title: Session Token
+              description: Amazon AWS Session Token used when the user needs to assume
+                a IAM role.
+            uriEndpointOverride:
+              type: string
+              title: Overwrite Endpoint URI
+              description: The overriding endpoint URI. To use this option, you must
+                also select the `overrideEndpoint` option.
+            overrideEndpoint:
+              type: boolean
+              title: Endpoint Overwrite
+              description: Select this option to override the endpoint URI. To use
+                this option, you must also provide a URI for the `uriEndpointOverride`
+                option.
+              default: false
+            forcePathStyle:
+              type: boolean
+              title: Force Path Style
+              description: Forces path style when accessing AWS S3 buckets.
+              default: false
+            delay:
+              type: integer
+              title: Delay
+              description: The number of milliseconds before the next poll of the
+                selected bucket.
+              default: 500
+            maxMessagesPerPoll:
+              type: integer
+              title: Max Messages Per Poll
+              description: Gets the maximum number of messages as a limit to poll
+                at each polling. Gets the maximum number of messages as a limit to
+                poll at each polling. The default value is 10. Use 0 or a negative
+                number to set it as unlimited.
+              default: 10

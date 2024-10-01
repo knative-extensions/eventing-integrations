@@ -1,0 +1,125 @@
+spec:
+  type: object
+  properties:
+    aws:
+      type: object
+      properties:
+        sqs:
+          type: object
+          properties:
+            queueNameOrArn:
+              type: string
+              title: Queue Name
+              description: The SQS Queue Name or ARN
+            deleteAfterRead:
+              type: boolean
+              title: Auto-delete Messages
+              description: Delete messages after consuming them
+              default: true
+            accessKey:
+              type: string
+              title: Access Key
+              description: The access key obtained from AWS.
+            secretKey:
+              type: string
+              title: Secret Key
+              description: The secret key obtained from AWS.
+            region:
+              type: string
+              title: AWS Region
+              description: The AWS region to access.
+            autoCreateQueue:
+              type: boolean
+              title: Autocreate Queue
+              description: Setting the autocreation of the SQS queue.
+              default: false
+            amazonAWSHost:
+              type: string
+              title: AWS Host
+              description: The hostname of the Amazon AWS cloud.
+              default: amazonaws.com
+            protocol:
+              type: string
+              title: Protocol
+              description: The underlying protocol used to communicate with SQS
+              default: https
+              example: http or https
+            queueURL:
+              type: string
+              title: Queue URL
+              description: The full SQS Queue URL (required if using KEDA)
+            useDefaultCredentialsProvider:
+              type: boolean
+              title: Default Credentials Provider
+              description: If true, the SQS client loads credentials through a default
+                credentials provider. If false, it uses the basic authentication method
+                (access key and secret key).
+              default: false
+            useProfileCredentialsProvider:
+              type: boolean
+              title: Profile Credentials Provider
+              description: Set whether the SQS client should expect to load credentials
+                through a profile credentials provider.
+              default: false
+            useSessionCredentials:
+              type: boolean
+              title: Session Credentials
+              description: Set whether the SQS client should expect to use Session
+                Credentials. This is useful in situation in which the user needs to
+                assume a IAM role for doing operations in SQS.
+              default: false
+            profileCredentialsName:
+              type: string
+              title: Profile Credentials Name
+              description: If using a profile credentials provider this parameter
+                will set the profile name.
+            sessionToken:
+              type: string
+              title: Session Token
+              description: Amazon AWS Session Token used when the user needs to assume
+                a IAM role.
+            uriEndpointOverride:
+              type: string
+              title: Overwrite Endpoint URI
+              description: The overriding endpoint URI. To use this option, you must
+                also select the `overrideEndpoint` option.
+            overrideEndpoint:
+              type: boolean
+              title: Endpoint Overwrite
+              description: Select this option to override the endpoint URI. To use
+                this option, you must also provide a URI for the `uriEndpointOverride`
+                option.
+              default: false
+            delay:
+              type: integer
+              title: Delay
+              description: The number of milliseconds before the next poll of the
+                selected stream
+              default: 500
+            greedy:
+              type: boolean
+              title: Greedy Scheduler
+              description: If greedy is enabled, then the polling will happen immediately
+                again, if the previous run polled 1 or more messages.
+              default: false
+            maxMessagesPerPoll:
+              type: integer
+              title: Max Messages Per Poll
+              description: The maximum number of messages to return. Amazon SQS never
+                returns more messages than this value (however, fewer messages might
+                be returned). Valid values 1 to 10. Default 1.
+              default: 1
+            waitTimeSeconds:
+              type: integer
+              title: Wait Time Seconds
+              description: The duration (in seconds) for which the call waits for
+                a message to arrive in the queue before returning. If a message is
+                available, the call returns sooner than WaitTimeSeconds. If no messages
+                are available and the wait time expires, the call does not return
+                a message list.
+            visibilityTimeout:
+              type: integer
+              title: Visibility Timeout
+              description: The duration (in seconds) that the received messages are
+                hidden from subsequent retrieve requests after being retrieved by
+                a ReceiveMessage request.

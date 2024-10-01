@@ -1,0 +1,14 @@
+{
+  "resources": [
+    {
+      "name": "default",
+      "type": "event",
+      "endpointKind": "source",
+      "path": "/events",
+      "objectApiVersion": "eventing.knative.dev/v1",
+      "objectKind": "Broker",
+      "objectName": "default",
+      "reply": false
+    }
+  ]
+}

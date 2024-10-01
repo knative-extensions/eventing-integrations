@@ -1,0 +1,26 @@
+spec:
+  type: object
+  properties:
+    timer:
+      type: object
+      properties:
+        period:
+          type: integer
+          title: Period
+          description: The interval (in milliseconds) to wait between producing the
+            next message.
+          default: 1000
+        message:
+          type: string
+          title: Message
+          description: The message to generate.
+          example: hello world
+        contentType:
+          type: string
+          title: Content Type
+          description: The content type of the generated message.
+          default: text/plain
+        repeatCount:
+          type: integer
+          title: Repeat Count
+          description: Specifies a maximum limit of number of fires

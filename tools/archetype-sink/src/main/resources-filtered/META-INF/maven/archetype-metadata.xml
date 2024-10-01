@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<archetype-descriptor xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+    name="kn-connector-archetype-source"
+    xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <requiredProperties>
+    <requiredProperty key="kamelet-name"/>
+    <requiredProperty key="component-name">
+      <defaultValue>${kamelet-name}</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="groupId">
+      <defaultValue>dev.knative.eventing</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="version">
+      <defaultValue>${project.version}</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="artifactId">
+      <defaultValue>${kamelet-name}-source</defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+  <fileSets>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>src/main/kubernetes</directory>
+      <includes>
+        <include>**/*.yml</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory>META-INF</directory>
+      <includes>
+        <include>Dockerfile.*</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory>src/main/docker</directory>
+      <includes>
+        <include>Dockerfile.*</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory>src/main/resources</directory>
+      <includes>
+        <include>**/*.yaml</include>
+        <include>**/*.json</include>
+        <include>**/*.properties</include>
+        <include>**/*.txt</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" encoding="UTF-8">
+      <directory/>
+      <includes>
+        <include>properties.adoc</include>
+        <include>README.adoc</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</archetype-descriptor>

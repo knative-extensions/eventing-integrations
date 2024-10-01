@@ -1,0 +1,17 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  annotations:
+    eventing.knative.dev/creator: kn-connectors
+  labels:
+    eventing.knative.dev/connector: ${kamelet-name}-sink
+    eventing.knative.dev/broker: default
+  name: kn-connector-${kamelet-name}-sink
+spec:
+  broker: default
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: kn-connector-${kamelet-name}-sink
+    uri: /events

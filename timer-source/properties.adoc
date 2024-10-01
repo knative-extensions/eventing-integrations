@@ -1,0 +1,24 @@
+|===
+|Property |Required |EnvVar |Description
+
+|period
+|no
+|CAMEL_KAMELET_TIMER_SOURCE_PERIOD=1000
+|The interval (in milliseconds) to wait between producing the next message.
+
+|message
+|yes
+|CAMEL_KAMELET_TIMER_SOURCE_MESSAGE=<the_message>
+|The message to generate.
+
+|contentType
+|no
+|CAMEL_KAMELET_TIMER_SOURCE_CONTENTTYPE=text/plain
+|The content type of the generated message.
+
+|repeatCount
+|no
+|CAMEL_KAMELET_TIMER_SOURCE_REPEATCOUNT=<the_repeatCount>
+|Specifies a maximum limit of number of fires
+
+|===

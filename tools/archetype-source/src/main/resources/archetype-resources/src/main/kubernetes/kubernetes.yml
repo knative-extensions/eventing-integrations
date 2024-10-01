@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    eventing.knative.dev/connector: ${kamelet-name}-source
+  name: kn-connector-${kamelet-name}-source
+spec:
+  selector:
+    matchLabels:
+      eventing.knative.dev/connector: ${kamelet-name}-source
+  template:
+    metadata:
+      labels:
+        eventing.knative.dev/connector: ${kamelet-name}-source
+    spec:
+      containers:
+      - name: kn-connector-${kamelet-name}-source
+---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  annotations:
+    sources.knative.dev/creator: connectors.knative.dev
+  finalizers:
+    - sinkbindings.sources.knative.dev
+  labels:
+    eventing.knative.dev/connector: ${kamelet-name}-source
+  name: kn-connector-${kamelet-name}-source
+spec:
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+  subject:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kn-connector-${kamelet-name}-source

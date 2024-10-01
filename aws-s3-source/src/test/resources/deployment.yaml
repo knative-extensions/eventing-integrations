@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    eventing.knative.dev/connector: aws-s3-source
+  name: kn-connector-aws-s3-source
+spec:
+  selector:
+    matchLabels:
+      eventing.knative.dev/connector: aws-s3-source
+  template:
+    metadata:
+      labels:
+        eventing.knative.dev/connector: aws-s3-source
+    spec:
+      containers:
+        - name: kn-connector-aws-s3-source
+          image: localhost:5001/openshift-knative/kn-connector-aws-s3-source:1.0-SNAPSHOT
+          imagePullPolicy: Always
+          env:
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_BUCKETNAMEORARN
+              value: "${aws.s3.bucketName}"
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_ACCESSKEY
+              value: "${aws.s3.accessKey}"
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_SECRETKEY
+              value: "${aws.s3.secretKey}"
+            - name: CAMEL_KAMELET_AWS_S3_SOURCE_REGION
+              value: "${aws.s3.region}"

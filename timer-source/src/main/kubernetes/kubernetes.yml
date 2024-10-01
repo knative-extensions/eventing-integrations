@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    eventing.knative.dev/connector: timer-source
+  name: kn-connector-timer-source
+spec:
+  selector:
+    matchLabels:
+      eventing.knative.dev/connector: timer-source
+  template:
+    metadata:
+      labels:
+        eventing.knative.dev/connector: timer-source
+    spec:
+      containers:
+      - name: kn-connector-timer-source
+        env:
+          - name: CAMEL_KAMELET_TIMER_SOURCE_MESSAGE
+            value: "Hello from timer source!"
+          - name: CAMEL_KAMELET_TIMER_SOURCE_PERIOD
+            value: "1000"
+---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  annotations:
+    sources.knative.dev/creator: connectors.knative.dev
+  finalizers:
+    - sinkbindings.sources.knative.dev
+  labels:
+    eventing.knative.dev/connector: timer-source
+  name: kn-connector-timer-source
+spec:
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+  subject:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kn-connector-timer-source

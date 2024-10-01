@@ -1,0 +1,176 @@
+= Knative connector ${kamelet-name}-sink
+
+Knative eventing connector based on https://camel.apache.org/camel-kamelets/[Apache Camel Kamelets].
+The connector project creates a container image that is pushed into a registry so the image can be referenced in a Kubernetes deployment.
+
+== Kamelet properties
+
+The kn-connector source images provides these properties that you can set (e.g. via environment properties on the deployment).
+
+.Kamelet properties
+include::properties.adoc[]
+
+== Kubernetes manifest
+
+The build produces a Kubernetes manifest in (`target/kubernetes/kubernetes.yml`).
+This manifest holds all resources required to run the application on your Kubernetes cluster.
+
+You can customize the Kubernetes resources in link:src/main/kubernetes/kubernetes.yml[src/main/kubernetes/kubernetes.yml].
+This is being used as a basis and Quarkus will generate the final manifest in `target/kubernetes/kubernetes.yml` during the build.
+
+The final Kubernetes manifest includes:
+
+* Service
+* Deployment
+* Trigger
+
+== Kamelet sink Pipe
+
+The sink consumes events from the Knative broker.
+It uses an Apache Camel Pipe resource as the central piece of code to define how the Knative events are consumed and where the events get forwarded to.
+
+The Pipe is a YAML file located in link:src/main/resources/camel/kn-connector-sink.yaml[src/main/resources/camel/kn-connector-sink.yaml]
+
+.kn-connector-sink.yaml
+[source,yaml]
+----
+apiVersion: camel.apache.org/v1
+kind: Pipe
+metadata:
+  name: kn-connector-${kamelet-name}-sink
+spec:
+  source:
+    ref:
+      kind: Broker
+      apiVersion: eventing.knative.dev/v1
+      name: default
+    properties:
+      type: ""
+  sink:
+    ref:
+      kind: Kamelet
+      apiVersion: camel.apache.org/v1
+      name: ${kamelet-name}-sink
+----
+
+This connector uses the https://camel.apache.org/camel-kamelets/${kamelet-name}-sink.html[${kamelet-name}-sink] Kamelet and consumes events from the Knative broker.
+
+The Pipe references a Knative broker as a source and connects to a Kamelet as a sink.
+
+The name of the broker is always `default` because the Knative Trigger resource is responsible for connecting the application to the Knative broker.
+The Trigger decides when to call the application as it provides the events to the application based on the trigger configuration.
+
+This way the same container image can be used with different brokers and events (e.g. by adding filter criteria to the Trigger).
+It is only a matter of configuring the Trigger resource that connects the application with the Knative broker.
+
+You can find a sample Trigger in link:src/main/kubernetes/kubernetes.yml[src/main/kubernetes/kubernetes.yml]
+
+[source,yaml]
+----
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  annotations:
+    eventing.knative.dev/creator: kn-connectors
+  labels:
+    eventing.knative.dev/connector: ${kamelet-name}-sink
+    eventing.knative.dev/broker: default
+  name: kn-connector-${kamelet-name}-sink
+spec:
+  broker: default
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: kn-connector-${kamelet-name}-sink
+    uri: /events
+----
+
+== Configuration
+
+Each Kamelet defines a set of properties.
+The user is able to customize these properties when running a connector deployment.
+
+=== Environment variables
+
+You can customize the properties via environment variables on the deployment:
+
+.Environment variables
+include::properties.adoc[]
+
+The environment variables that overwrite properties on the Kamelet sink follow a naming convention:
+
+* CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}={{PROPERTY_VALUE}}
+
+The name represents the name of the Kamelet sink as defined in the https://camel.apache.org/camel-kamelets/[Kamelet catalog].
+
+The environment variables may be set as part of the Kubernetes deployment or as an alternative on the Knative ContainerSource:
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: kamelet-sink
+  namespace: knative-samples
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/openshift-knative/kn-connector-${kamelet-name}-sink:1.0
+          name: log
+          env:
+            - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}
+              value: "true"
+            - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}
+              value: "INFO"
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+----
+
+You can also set the environment variable on the running deployment:
+
+[source,shell]
+----
+kubectl set env deployment/kn-connector-{{sink-name}} CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}="true"
+----
+
+=== ConfigMap and Secret
+
+You may also mount a configmap/secret to overwrite Kamelet properties with values from the configmap/secret resource.
+
+As the Kamelet properties are configured viw environment variables on the ContainerSource you can also use values referencing a configmap or secret.
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: kamelet-sink
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/openshift-knative/kn-connector-${kamelet-name}-sink:1.0
+          name: log
+          env:
+            - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: my-property-value
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+----
+
+The example above references a secret called `my-secret` and loads the key `my-property-value`.
+
+== More configuration options
+
+For more information about Apache Camel Kamelets and their individual properties see https://camel.apache.org/camel-kamelets/.
