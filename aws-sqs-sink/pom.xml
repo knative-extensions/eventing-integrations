@@ -12,7 +12,7 @@
   </parent>
 
   <artifactId>kn-connector-aws-sqs-sink</artifactId>
-  <name>Knative Connectors :: aws-sqs Sink</name>
+  <name>Knative Connectors :: AWS SQS Sink</name>
 
   <dependencies>
     <dependency>

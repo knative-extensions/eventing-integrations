@@ -12,7 +12,7 @@
   </parent>
 
   <artifactId>kn-connector-aws-s3-sink</artifactId>
-  <name>Knative Connectors :: aws-s3 Sink</name>
+  <name>Knative Connectors :: AWS S3 Sink</name>
 
   <dependencies>
     <dependency>

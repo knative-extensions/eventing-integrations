@@ -1,4 +1,74 @@
 |===
 |Property |Required |EnvVar |Description
 
+|queueNameOrArn
+|yes
+|CAMEL_KAMELET_AWS_SQS_SINK_QUEUENAMEORARN=<the_queueNameOrArn>
+|The SQS Queue name or or Amazon Resource Name (ARN).
+
+|accessKey
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_ACCESSKEY=<the_accessKey>
+|The access key obtained from AWS.
+
+|secretKey
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_SECRETKEY=<the_secretKey>
+|The secret key obtained from AWS.
+
+|region
+|yes
+|CAMEL_KAMELET_AWS_SQS_SINK_REGION=<the_region>
+|The AWS region to access.
+
+|autoCreateQueue
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_AUTOCREATEQUEUE=false
+|Automatically create the SQS queue.
+
+|amazonAWSHost
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_AMAZONAWSHOST=amazonaws.com
+|The hostname of the Amazon AWS cloud.
+
+|protocol
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_PROTOCOL=https
+|The underlying protocol used to communicate with SQS.
+
+|useDefaultCredentialsProvider
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_USEDEFAULTCREDENTIALSPROVIDER=false
+|If true, the SQS client loads credentials through a default credentials provider. If false, it uses the basic authentication method (access key and secret key).
+
+|useProfileCredentialsProvider
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_USEPROFILECREDENTIALSPROVIDER=false
+|Set whether the SQS client should expect to load credentials through a profile credentials provider.
+
+|useSessionCredentials
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_USESESSIONCREDENTIALS=false
+|Set whether the SQS client should expect to use Session Credentials. This is useful in situation in which the user needs to assume a IAM role for doing operations in SQS.
+
+|profileCredentialsName
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_PROFILECREDENTIALSNAME=<the_profileCredentialsName>
+|If using a profile credentials provider this parameter will set the profile name.
+
+|sessionToken
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_SESSIONTOKEN=<the_sessionToken>
+|Amazon AWS Session Token used when the user needs to assume a IAM role.
+
+|uriEndpointOverride
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_URIENDPOINTOVERRIDE=<the_uriEndpointOverride>
+|The overriding endpoint URI. To use this option, you must also select the `overrideEndpoint` option.
+
+|overrideEndpoint
+|no
+|CAMEL_KAMELET_AWS_SQS_SINK_OVERRIDEENDPOINT=false
+|Select this option to override the endpoint URI. To use this option, you must also provide a URI for the `uriEndpointOverride` option.
+
 |===
