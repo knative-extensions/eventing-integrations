@@ -200,6 +200,23 @@
 
     <profiles>
         <profile>
+            <id>knative</id>
+            <activation>
+                <property>
+                    <name>knative</name>
+                </property>
+            </activation>
+            <properties>
+                <quarkus.container-image.image>${env.KO_DOCKER_REPO}/${project.artifactId}:${env.TAG}</quarkus.container-image.image>
+
+                <quarkus.container-image.build>true</quarkus.container-image.build>
+                <quarkus.container-image.push>true</quarkus.container-image.push>
+
+                <!-- Unset to prevent default inheritance -->
+                <quarkus.container-image.insecure>false</quarkus.container-image.insecure>
+            </properties>
+        </profile>
+        <profile>
             <id>native</id>
             <activation>
                 <property>
