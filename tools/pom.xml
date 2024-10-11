@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>dev.knative.eventing</groupId>
-        <artifactId>kn-connectors</artifactId>
+        <artifactId>connectors</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>kn-connector-tools</artifactId>
+    <artifactId>connector-tools</artifactId>
     <name>Knative Connectors :: Tools</name>
     <packaging>pom</packaging>
 

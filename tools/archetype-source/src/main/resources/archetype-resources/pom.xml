@@ -22,12 +22,12 @@
 
   <parent>
     <groupId>dev.knative.eventing</groupId>
-    <artifactId>kn-connectors</artifactId>
+    <artifactId>connectors</artifactId>
     <version>${version}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>kn-connector-${artifactId}</artifactId>
+  <artifactId>connector-${artifactId}</artifactId>
   <name>Knative Connectors :: ${kamelet-name} Source</name>
 
   <dependencies>
@@ -126,7 +126,7 @@
     <plugins>
       <plugin>
         <groupId>dev.knative.eventing</groupId>
-        <artifactId>kn-connector-maven-plugin</artifactId>
+        <artifactId>connector-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
           <kameletName>${kamelet-name}-source</kameletName>

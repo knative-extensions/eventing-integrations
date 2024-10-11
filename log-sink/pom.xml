@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>dev.knative.eventing</groupId>
-        <artifactId>kn-connectors</artifactId>
+        <artifactId>connectors</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>kn-connector-log-sink</artifactId>
+    <artifactId>connector-log-sink</artifactId>
     <name>Knative Connectors :: Log Sink</name>
 
     <dependencies>
@@ -99,7 +99,7 @@
         <plugins>
             <plugin>
                 <groupId>dev.knative.eventing</groupId>
-                <artifactId>kn-connector-maven-plugin</artifactId>
+                <artifactId>connector-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
                     <kameletName>log-sink</kameletName>

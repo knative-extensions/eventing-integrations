@@ -6,12 +6,12 @@
 
     <parent>
         <groupId>dev.knative.eventing</groupId>
-        <artifactId>kn-connectors</artifactId>
+        <artifactId>connectors</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>kn-connector-timer-source</artifactId>
+    <artifactId>timer-source</artifactId>
     <name>Knative Connectors :: Timer Source</name>
 
     <dependencies>
@@ -113,7 +113,7 @@
         <plugins>
             <plugin>
                 <groupId>dev.knative.eventing</groupId>
-                <artifactId>kn-connector-maven-plugin</artifactId>
+                <artifactId>connector-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
                     <kameletName>timer-source</kameletName>
