@@ -208,7 +208,7 @@
             </activation>
             <properties>
                 <quarkus.container-image.image>${env.KO_DOCKER_REPO}/${project.artifactId}:${env.TAG}</quarkus.container-image.image>
-
+                <quarkus.container-image.additional-tags>latest</quarkus.container-image.additional-tags>
                 <quarkus.container-image.build>true</quarkus.container-image.build>
                 <quarkus.container-image.push>true</quarkus.container-image.push>
 
