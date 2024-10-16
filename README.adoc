@@ -368,6 +368,57 @@ spec:
 
 The trigger for example filters the events by its type `ce-type=dev.knative.connector.event.timer`.
 
+== Secure Knative transports
+
+Knative brokers may use TLS encrypted transport options as described in https://knative.dev/docs/eventing/features/transport-encryption/#overview
+
+This means that Event producers need to use proper SSL authentication to connect to Https Knative broker endpoints with cluster-internal CA certificates.
+
+The IntegrationSource may use a volume mount with the cluster-internal CA certificates being injected.
+
+The integration source needs to enable the SSL client via environment variables and set the path to the injected CA certs and PEM files:
+
+* CAMEL_KNATIVE_CLIENT_SSL_ENABLED=true
+* CAMEL_KNATIVE_CLIENT_SSL_KEY_PATH=/knative-custom-certs/knative-eventing-bundle.pem
+
+This enables the SSL options on the Http client that connects with the broker endpoint. The SSL client support provides these environment variables:
+
+|===
+|EnvVar |Description
+
+|CAMEL_KNATIVE_CLIENT_SSL_ENABLED
+|Enable/disable SSL options on the Http client. Default value is `false`.
+
+|CAMEL_KNATIVE_CLIENT_SSL_VERIFY_HOSTNAME
+|Enable/disable hostname verification. Default value is `true`.
+
+|CAMEL_KNATIVE_CLIENT_SSL_KEY_PATH
+|Path to the key store options configuring a list of private key and its certificate based on Privacy-enhanced Electronic Email (PEM) files.
+
+|CAMEL_KNATIVE_CLIENT_SSL_KEY_CERT_PATH
+|Optional path to the client certificate in case the CA cert is not included in the key PEM file.
+
+|CAMEL_KNATIVE_CLIENT_SSL_KEYSTORE_PATH
+|Java keystore (.jks) or (.p12) path as an alternative to using PEM files.
+
+|CAMEL_KNATIVE_CLIENT_SSL_KEYSTORE_PASSWORD
+|Keystore password. Value can be set via secretKeyRef.
+
+|CAMEL_KNATIVE_CLIENT_SSL_TRUST_CERT_PATH
+|Path to the trust certificate provided as a PEM file.
+
+|CAMEL_KNATIVE_CLIENT_SSL_TRUSTSTORE_PATH
+|Java truststore (.jks) or (.p12) path as an alternative to using PEM files.
+
+|CAMEL_KNATIVE_CLIENT_SSL_TRUSTSTORE_PASSWORD
+|Truststore password. Value can be set via secretKeyRef.
+
+|===
+
+As you can see the SSL client support provides multiple ways to configure keystore and truststore options.
+It is recommended to set keystore/truststore passwords vie secretKeyRef on the IntegrationSource spec.
+When no truststore configuration is given the SSL client support defaults to using trust all options.
+
 == Dependencies
 
 The required Camel dependencies need to be added to the Maven POM before building and deploying.
