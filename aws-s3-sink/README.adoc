@@ -29,15 +29,15 @@ The final Kubernetes manifest includes:
 The sink consumes events from the Knative broker.
 It uses an Apache Camel Pipe resource as the central piece of code to define how the Knative events are consumed and where the events get forwarded to.
 
-The Pipe is a YAML file located in link:src/main/resources/camel/kn-connector-sink.yaml[src/main/resources/camel/kn-connector-sink.yaml]
+The Pipe is a YAML file located in link:src/main/resources/camel/sink.yaml[src/main/resources/camel/sink.yaml]
 
-.kn-connector-sink.yaml
+.sink.yaml
 [source,yaml]
 ----
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-aws-s3-sink
+  name: aws-s3-sink
 spec:
   source:
     ref:
@@ -75,14 +75,14 @@ metadata:
   labels:
     eventing.knative.dev/connector: aws-s3-sink
     eventing.knative.dev/broker: default
-  name: kn-connector-aws-s3-sink
+  name: aws-s3-sink
 spec:
   broker: default
   subscriber:
     ref:
       apiVersion: v1
       kind: Service
-      name: kn-connector-aws-s3-sink
+      name: aws-s3-sink
 ----
 
 == Configuration
@@ -116,7 +116,7 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/openshift-knative/kn-connector-aws-s3-sink:1.0
+        - image: quay.io/openshift-knative/aws-s3-sink:1.0
           name: log
           env:
             - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}
@@ -134,7 +134,7 @@ You can also set the environment variable on the running deployment:
 
 [source,shell]
 ----
-kubectl set env deployment/kn-connector-{{sink-name}} CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}="true"
+kubectl set env deployment/{{sink-name}} CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}="true"
 ----
 
 === ConfigMap and Secret
@@ -153,7 +153,7 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/openshift-knative/kn-connector-aws-s3-sink:1.0
+        - image: quay.io/openshift-knative/aws-s3-sink:1.0
           name: log
           env:
             - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}

@@ -18,18 +18,17 @@
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-aws-ddb-streams-source
+  name: ${kamelet-name}-sink
 spec:
   source:
     ref:
-      apiVersion: camel.apache.org/v1
-      kind: Kamelet
-      name: aws-ddb-streams-source
-  sink:
-    dataTypes:
-      in:
-        format: http-application-cloudevents
-    ref:
-      apiVersion: eventing.knative.dev/v1
       kind: Broker
+      apiVersion: eventing.knative.dev/v1
       name: default
+    properties:
+      type: ""
+  sink:
+    ref:
+      kind: Kamelet
+      apiVersion: camel.apache.org/v1
+      name: ${kamelet-name}-sink

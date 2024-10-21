@@ -6,11 +6,11 @@ metadata:
   labels:
     eventing.knative.dev/connector: ${kamelet-name}-sink
     eventing.knative.dev/broker: default
-  name: kn-connector-${kamelet-name}-sink
+  name: ${kamelet-name}-sink
 spec:
   broker: default
   subscriber:
     ref:
       apiVersion: v1
       kind: Service
-      name: kn-connector-${kamelet-name}-sink
+      name: ${kamelet-name}-sink

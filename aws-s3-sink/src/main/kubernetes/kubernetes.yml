@@ -6,11 +6,11 @@ metadata:
   labels:
     eventing.knative.dev/connector: aws-s3-sink
     eventing.knative.dev/broker: default
-  name: kn-connector-aws-s3-sink
+  name: aws-s3-sink
 spec:
   broker: default
   subscriber:
     ref:
       apiVersion: v1
       kind: Service
-      name: kn-connector-aws-s3-sink
+      name: aws-s3-sink

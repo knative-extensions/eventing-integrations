@@ -29,15 +29,15 @@ The final Kubernetes manifest includes:
 The source produces events for the Knative broker.
 It uses an Apache Camel Pipe resource as the central piece of code to define how the Knative events are produced.
 
-The Pipe is a YAML file located in link:src/main/resources/camel/kn-connector-source.yaml[src/main/resources/camel/kn-connector-source.yaml]
+The Pipe is a YAML file located in link:src/main/resources/camel/source.yaml[src/main/resources/camel/source.yaml]
 
-.kn-connector-source.yaml
+.source.yaml
 [source,yaml]
 ----
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-aws-s3-source
+  name: aws-s3-source
 spec:
   source:
     ref:
@@ -77,7 +77,7 @@ metadata:
     - sinkbindings.sources.knative.dev
   labels:
     eventing.knative.dev/connector: aws-s3-source
-  name: kn-connector-aws-s3-source
+  name: aws-s3-source
 spec:
   sink:
     ref:
@@ -87,7 +87,7 @@ spec:
   subject:
     apiVersion: apps/v1
     kind: Deployment
-    name: kn-connector-aws-s3-source
+    name: aws-s3-source
 ----
 
 == Configuration
@@ -120,7 +120,7 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/openshift-knative/kn-connector-aws-s3-source:1.0
+        - image: quay.io/openshift-knative/aws-s3-source:1.0
           name: aws-s3
           env:
             - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}
@@ -136,7 +136,7 @@ You can also set the environment variable on the running deployment:
 
 [source,shell]
 ----
-kubectl set env deployment/kn-connector-{{source-name}} CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}="I updated it..."
+kubectl set env deployment/{{source-name}} CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}="I updated it..."
 ----
 
 === ConfigMap and Secret
@@ -156,7 +156,7 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/openshift-knative/kn-connector-aws-s3-source:1.0
+        - image: quay.io/openshift-knative/aws-s3-source:1.0
           name: aws-s3
           env:
             - name: CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}

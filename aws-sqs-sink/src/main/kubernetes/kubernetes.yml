@@ -6,11 +6,11 @@ metadata:
   labels:
     eventing.knative.dev/connector: aws-sqs-sink
     eventing.knative.dev/broker: default
-  name: kn-connector-aws-sqs-sink
+  name: aws-sqs-sink
 spec:
   broker: default
   subscriber:
     ref:
       apiVersion: v1
       kind: Service
-      name: kn-connector-aws-sqs-sink
+      name: aws-sqs-sink

@@ -18,7 +18,7 @@
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-${kamelet-name}-sink
+  name: aws-s3-sink
 spec:
   source:
     ref:
@@ -31,4 +31,4 @@ spec:
     ref:
       kind: Kamelet
       apiVersion: camel.apache.org/v1
-      name: ${kamelet-name}-sink
+      name: aws-s3-sink

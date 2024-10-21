@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     eventing.knative.dev/connector: ${kamelet-name}-source
-  name: kn-connector-${kamelet-name}-source
+  name: ${kamelet-name}-source
 spec:
   selector:
     matchLabels:
@@ -14,7 +14,7 @@ spec:
         eventing.knative.dev/connector: ${kamelet-name}-source
     spec:
       containers:
-      - name: kn-connector-${kamelet-name}-source
+      - name: ${kamelet-name}-source
 ---
 apiVersion: sources.knative.dev/v1
 kind: SinkBinding
@@ -25,7 +25,7 @@ metadata:
     - sinkbindings.sources.knative.dev
   labels:
     eventing.knative.dev/connector: ${kamelet-name}-source
-  name: kn-connector-${kamelet-name}-source
+  name: ${kamelet-name}-source
 spec:
   sink:
     ref:
@@ -35,4 +35,4 @@ spec:
   subject:
     apiVersion: apps/v1
     kind: Deployment
-    name: kn-connector-${kamelet-name}-source
+    name: ${kamelet-name}-source

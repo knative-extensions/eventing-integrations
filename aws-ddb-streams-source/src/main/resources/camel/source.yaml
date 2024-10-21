@@ -18,13 +18,13 @@
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-aws-s3-source
+  name: aws-ddb-streams-source
 spec:
   source:
     ref:
       apiVersion: camel.apache.org/v1
       kind: Kamelet
-      name: aws-s3-source
+      name: aws-ddb-streams-source
   sink:
     dataTypes:
       in:

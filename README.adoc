@@ -13,18 +13,18 @@ You need to build the Maven archetype locally first before using it for the firs
 
 [source,shell]
 ----
-mvn install -pl :kn-connector-archetype-source
+mvn install -pl :archetype-source
 ----
 
 The command creates the Maven archetype artifact on your local machine, so you can use it in the Maven `archetype:generate` command:
 
-NOTE: The Maven archetype `kn-connector-archetype-source` creates a new IntegrationSource connector. Please use `kn-connector-archetype-sink` to create a new IntegrationSink connector project.
+NOTE: The Maven archetype `archetype-source` creates a new IntegrationSource connector. Please use `archetype-sink` to create a new IntegrationSink connector project.
 
 [source,shell]
 ----
 mvn archetype:generate \
  -DarchetypeGroupId=dev.knative.eventing \
- -DarchetypeArtifactId=kn-connector-archetype-source \
+ -DarchetypeArtifactId=archetype-source \
  -DarchetypeVersion=1.0-SNAPSHOT
 ----
 
@@ -40,7 +40,7 @@ You can also avoid the interactive mode when specifying all input parameters:
 ----
 mvn archetype:generate \
  -DarchetypeGroupId=dev.knative.eventing \
- -DarchetypeArtifactId=kn-connector-archetype-source \
+ -DarchetypeArtifactId=archetype-source \
  -DarchetypeVersion=1.0-SNAPSHOT \
  -DartifactId=aws-s3-source \
  -Dkamelet-name=aws-s3 \
@@ -79,7 +79,7 @@ By default, the container image looks like this:
 
 [source,text]
 ----
-quay.io/openshift-knative/kn-connector-{{source-name}}:1.0-SNAPSHOT
+quay.io/openshift-knative/{{source-name}}:1.0-SNAPSHOT
 ----
 
 The project leverages the Quarkus Kubernetes and container image extensions so you can use Quarkus properties and configurations to customize the resulting container image.
@@ -151,7 +151,7 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/openshift-knative/kn-connector-aws-s3-source:1.0
+        - image: quay.io/openshift-knative/aws-s3-source:1.0
           name: timer
           env:
             - name: CAMEL_KAMELET_AWS_S3_SOURCE_BUCKETNAMEORARN
@@ -169,7 +169,7 @@ You can also set the environment variable on the running deployment:
 
 [source,shell]
 ----
-kubectl set env deployment/kn-connector-{{source-name}} CAMEL_KAMELET_TIMER_SOURCE_MESSAGE="I updated it..."
+kubectl set env deployment/{{source-name}} CAMEL_KAMELET_TIMER_SOURCE_MESSAGE="I updated it..."
 ----
 
 === ConfigMap and Secret refs
@@ -189,7 +189,7 @@ spec:
   template:
     spec:
       containers:
-        - image: quay.io/openshift-knative/kn-connector-aws-s3-source:1.0
+        - image: quay.io/openshift-knative/aws-s3-source:1.0
           name: timer
           env:
             - name: CAMEL_KAMELET_AWS_S3_SOURCE_BUCKETNAMEORARN
@@ -276,9 +276,9 @@ spec:
               name: timer-source-config
               readOnly: true
       volumes:
-        - configMap:
+        - name: kn-source-config
+          configMap:
             name: my-timer-source-config
-          name: kn-source-config
 ----
 
 Camel is able to resolve the configmap mount path given in the volume mount.
@@ -329,7 +329,7 @@ You can set the CE_OVERRIDE attributes on a running deployment.
 
 [source,shell]
 ----
-kubectl set env deployment/kn-connector-{{source-name}} KN_CONNECTOR_CE_OVERRIDE_TYPE=custom-type
+kubectl set env deployment/{{source-name}} KN_CONNECTOR_CE_OVERRIDE_TYPE=custom-type
 ----
 
 You may also use the SinkBinding `K_CE_OVERRIDES` environment variable set on the deployment.
@@ -353,7 +353,7 @@ metadata:
   labels:
     eventing.knative.dev/connector: log-sink
     eventing.knative.dev/broker: default
-  name: kn-connector-log-sink
+  name: log-sink
 spec:
   broker: default
   filter:
@@ -363,7 +363,7 @@ spec:
     ref:
       apiVersion: v1
       kind: Service
-      name: kn-connector-log-sink
+      name: log-sink
 ----
 
 The trigger for example filters the events by its type `ce-type=dev.knative.connector.event.timer`.

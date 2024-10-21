@@ -18,7 +18,7 @@
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-${kamelet-name}-source
+  name: ${kamelet-name}-source
 spec:
   source:
     ref:

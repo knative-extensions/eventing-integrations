@@ -18,17 +18,22 @@
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-aws-s3-sink
+  name: aws-sqs-source
 spec:
   source:
     ref:
-      kind: Broker
-      apiVersion: eventing.knative.dev/v1
-      name: default
-    properties:
-      type: ""
-  sink:
-    ref:
-      kind: Kamelet
       apiVersion: camel.apache.org/v1
-      name: aws-s3-sink
+      kind: Kamelet
+      name: aws-sqs-source
+    properties:
+      # Remove workaround when Kamelets 4.8.1 is available
+      visibilityTimeout: 10
+      waitTimeSeconds: 5
+  sink:
+    dataTypes:
+      in:
+        format: http-application-cloudevents
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default

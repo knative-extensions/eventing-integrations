@@ -18,17 +18,13 @@
 apiVersion: camel.apache.org/v1
 kind: Pipe
 metadata:
-  name: kn-connector-aws-sqs-source
+  name: aws-s3-source
 spec:
   source:
     ref:
       apiVersion: camel.apache.org/v1
       kind: Kamelet
-      name: aws-sqs-source
-    properties:
-      # Remove workaround when Kamelets 4.8.1 is available
-      visibilityTimeout: 10
-      waitTimeSeconds: 5
+      name: aws-s3-source
   sink:
     dataTypes:
       in:

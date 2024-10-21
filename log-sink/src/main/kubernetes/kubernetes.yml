@@ -6,11 +6,11 @@ metadata:
   labels:
     eventing.knative.dev/connector: log-sink
     eventing.knative.dev/broker: default
-  name: kn-connector-log-sink
+  name: log-sink
 spec:
   broker: default
   subscriber:
     ref:
       apiVersion: v1
       kind: Service
-      name: kn-connector-log-sink
+      name: log-sink

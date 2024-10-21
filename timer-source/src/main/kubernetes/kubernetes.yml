@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     eventing.knative.dev/connector: timer-source
-  name: kn-connector-timer-source
+  name: timer-source
 spec:
   selector:
     matchLabels:
@@ -14,7 +14,7 @@ spec:
         eventing.knative.dev/connector: timer-source
     spec:
       containers:
-      - name: kn-connector-timer-source
+      - name: timer-source
         env:
           - name: CAMEL_KAMELET_TIMER_SOURCE_MESSAGE
             value: "Hello from timer source!"
@@ -30,7 +30,7 @@ metadata:
     - sinkbindings.sources.knative.dev
   labels:
     eventing.knative.dev/connector: timer-source
-  name: kn-connector-timer-source
+  name: timer-source
 spec:
   sink:
     ref:
@@ -40,4 +40,4 @@ spec:
   subject:
     apiVersion: apps/v1
     kind: Deployment
-    name: kn-connector-timer-source
+    name: timer-source
