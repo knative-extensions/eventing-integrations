@@ -35,6 +35,13 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
 
     private S3Client s3Client;
 
+    private final Map<String, String> injectedConf = new HashMap<>();
+
+    @Override
+    public void init(Map<String, String> initArgs) {
+        injectedConf.putAll(initArgs);
+    }
+
     @Override
     public Map<String, String> start() {
         localStackContainer.start();
@@ -50,16 +57,19 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
                 .region(Region.of(localStackContainer.getRegion()))
                 .build();
 
-        s3Client.createBucket(b -> b.bucket("mybucket"));
+        String bucketNameOrArn = injectedConf.remove("bucketNameOrArn");
+        s3Client.createBucket(b -> b.bucket(bucketNameOrArn));
 
         Map<String, String> conf = new HashMap<>();
         conf.put("camel.kamelet.aws-s3-source.accessKey", localStackContainer.getAccessKey());
         conf.put("camel.kamelet.aws-s3-source.secretKey", localStackContainer.getSecretKey());
         conf.put("camel.kamelet.aws-s3-source.region", localStackContainer.getRegion());
-        conf.put("camel.kamelet.aws-s3-source.bucketNameOrArn", "mybucket");
+        conf.put("camel.kamelet.aws-s3-source.bucketNameOrArn", bucketNameOrArn);
         conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", localStackContainer.getEndpoint().toString());
         conf.put("camel.kamelet.aws-s3-source.overrideEndpoint", "true");
         conf.put("camel.kamelet.aws-s3-source.forcePathStyle", "true");
+
+        conf.putAll(injectedConf);
 
         return conf;
     }
@@ -80,6 +90,6 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
     /**
      * Annotation marks fields in test class for injection by this test resource.
      */
-    @interface Injected {
+    public @interface Injected {
     }
 }

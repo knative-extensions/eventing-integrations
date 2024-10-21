@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package dev.knative.eventing.connector;
+package dev.knative.eventing.connector.ssl;
 
 import java.util.Collections;
 
+import dev.knative.eventing.connector.LocalstackTestResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.QuarkusTest;
@@ -42,15 +43,22 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 @QuarkusTest
 @CitrusSupport
 @QuarkusTestResource(value = LocalstackTestResource.class, restrictToAnnotatedClass = true, initArgs = {
-        @ResourceArg(name = "bucketNameOrArn", value = "mybucket")
+        @ResourceArg(name = "bucketNameOrArn", value = "mybucket"),
+        @ResourceArg(name = "k.sink", value = "https://localhost:8443"),
+        @ResourceArg(name = "camel.knative.client.ssl.enabled", value = "true"),
+        @ResourceArg(name = "camel.knative.client.ssl.verify.hostname", value = "false"),
+        @ResourceArg(name = "camel.knative.client.ssl.key.path", value = "keystore/client.pem"),
+        @ResourceArg(name = "camel.knative.client.ssl.key.cert.path", value = "keystore/client.crt"),
+        @ResourceArg(name = "camel.knative.client.ssl.truststore.path", value = "keystore/truststore.jks"),
+        @ResourceArg(name = "camel.knative.client.ssl.truststore.password", value = "secr3t")
 })
-public class AwsS3SourceTest {
+public class AwsS3SourceSSLTest {
 
     @CitrusResource
     private GherkinTestActionRunner tc;
 
     private final String s3Key = "message.txt";
-    private final String s3Data = "Hello from AWS S3!";
+    private final String s3Data = "Hello from secured AWS S3!";
     private final String s3BucketName = "mybucket";
 
     @LocalstackTestResource.Injected
@@ -60,11 +68,15 @@ public class AwsS3SourceTest {
     public HttpServer knativeBroker = HttpEndpoints.http()
             .server()
             .port(8080)
+            .securePort(8443)
+            .secured(HttpSecureConnection.ssl()
+                    .keyStore("classpath:keystore/server.jks", "secr3t")
+                    .trustStore("classpath:keystore/truststore.jks", "secr3t"))
             .autoStart(true)
             .build();
 
     @Test
-    public void shouldProduceEvents() {
+    public void shouldProduceSecureEvents() {
         tc.given(this::uploadS3File);
 
         tc.when(
