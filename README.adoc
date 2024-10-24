@@ -396,7 +396,7 @@ This enables the SSL options on the Http client that connects with the broker en
 |Path to the key store options configuring a list of private key and its certificate based on Privacy-enhanced Electronic Email (PEM) files.
 
 |CAMEL_KNATIVE_CLIENT_SSL_KEY_CERT_PATH
-|Optional path to the client certificate in case the CA cert is not included in the key PEM file.
+|Paths to client key CA certificates. Supports multiple paths as comma delimited String value.
 
 |CAMEL_KNATIVE_CLIENT_SSL_KEYSTORE_PATH
 |Java keystore (.jks) or (.p12) path as an alternative to using PEM files.
@@ -405,7 +405,7 @@ This enables the SSL options on the Http client that connects with the broker en
 |Keystore password. Value can be set via secretKeyRef.
 
 |CAMEL_KNATIVE_CLIENT_SSL_TRUST_CERT_PATH
-|Path to the trust certificate provided as a PEM file.
+|Paths to trust CA certificates. Supports multiple paths as comma delimited String value.
 
 |CAMEL_KNATIVE_CLIENT_SSL_TRUSTSTORE_PATH
 |Java truststore (.jks) or (.p12) path as an alternative to using PEM files.
