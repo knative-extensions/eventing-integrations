@@ -65,7 +65,7 @@ public class AwsSqsSourceTest {
                     .message()
                     .body(sqsData)
                     .header("ce-id", "@matches([0-9A-Z]{15}-[0-9]{16})@")
-                    .header("ce-type", "dev.knative.connector.event.aws-sqs")
+                    .header("ce-type", "dev.knative.eventing.aws-sqs")
                     .header("ce-source", "dev.knative.eventing.aws-sqs-source")
                     .header("ce-subject", "aws-sqs-source")
         );

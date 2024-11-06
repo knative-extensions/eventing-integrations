@@ -97,7 +97,7 @@ public class AwsDdbStreamsSourceTest {
                     }
                     """)
                     .header("ce-id", "@matches([0-9A-Z]{15}-[0-9]{16})@")
-                    .header("ce-type", "dev.knative.connector.event.aws-ddb-streams")
+                    .header("ce-type", "dev.knative.eventing.aws-ddb-streams")
                     .header("ce-source", "dev.knative.eventing.aws-ddb-streams-source")
                     .header("ce-subject", "aws-ddb-streams-source")
         );

@@ -24,8 +24,9 @@ NOTE: The Maven archetype `archetype-source` creates a new IntegrationSource con
 ----
 mvn archetype:generate \
  -DarchetypeGroupId=dev.knative.eventing \
- -DarchetypeArtifactId=archetype-source \
- -DarchetypeVersion=1.0-SNAPSHOT
+ -DarchetypeArtifactId=connector-archetype-source \
+ -DarchetypeVersion=1.0-SNAPSHOT \
+ -DoutputDirectory=integration-source
 ----
 
 This command starts the archetype generation in interactive mode.
@@ -40,11 +41,12 @@ You can also avoid the interactive mode when specifying all input parameters:
 ----
 mvn archetype:generate \
  -DarchetypeGroupId=dev.knative.eventing \
- -DarchetypeArtifactId=archetype-source \
+ -DarchetypeArtifactId=connector-archetype-source \
  -DarchetypeVersion=1.0-SNAPSHOT \
  -DartifactId=aws-s3-source \
  -Dkamelet-name=aws-s3 \
- -Dcomponent-name=aws2-s3
+ -Dcomponent-name=aws2-s3 \
+ -DoutputDirectory=integration-source
 ----
 
 Each connector requires a set of Camel Quarkus dependencies in the Maven POM.
@@ -315,7 +317,7 @@ This means you can overwrite Kamelet properties with the values from the secret 
 Each connector produces/consumes events in CloudEvent data format.
 The connector uses a set of default values for the CloudEvent attributes:
 
-* _ce-type_: dev.knative.connector.event.{{source-type}}
+* _ce-type_: dev.knative.eventing.{{source-type}}
 * _ce-source_: dev.knative.eventing.{{source-name}}
 * _ce-subject_: {{source-name}}
 
@@ -358,7 +360,7 @@ spec:
   broker: default
   filter:
     attributes:
-      type: dev.knative.connector.event.timer
+      type: dev.knative.eventing.timer
   subscriber:
     ref:
       apiVersion: v1
@@ -366,7 +368,7 @@ spec:
       name: log-sink
 ----
 
-The trigger for example filters the events by its type `ce-type=dev.knative.connector.event.timer`.
+The trigger for example filters the events by its type `ce-type=dev.knative.eventing.timer`.
 
 == Secure Knative transports
 
