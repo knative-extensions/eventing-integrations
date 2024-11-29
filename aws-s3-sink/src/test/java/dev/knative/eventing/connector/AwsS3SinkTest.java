@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.GherkinTestActionRunner;
+import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -44,7 +44,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 public class AwsS3SinkTest {
 
     @CitrusResource
-    private GherkinTestActionRunner tc;
+    private TestCaseRunner tc;
 
     private final String s3Key = "message.txt";
     private final String s3Data = "Hello from AWS S3!";

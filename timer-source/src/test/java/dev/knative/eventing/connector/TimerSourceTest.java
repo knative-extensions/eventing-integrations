@@ -17,7 +17,7 @@
 package dev.knative.eventing.connector;
 
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.GherkinTestActionRunner;
+import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.server.HttpServer;
@@ -33,7 +33,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 public class TimerSourceTest {
 
     @CitrusResource
-    private GherkinTestActionRunner tc;
+    private TestCaseRunner tc;
 
     @BindToRegistry
     public HttpServer knativeBroker = HttpEndpoints.http()

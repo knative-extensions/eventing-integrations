@@ -3,7 +3,7 @@
 
 |loggerName
 |no
-|CAMEL_KAMELET_LOG_SINK_LOGGERNAME=log-sink
+|CAMEL_KAMELET_LOG_SINK_LOGGER_NAME=log-sink
 |Name of the logging category to use
 
 |level
@@ -13,7 +13,7 @@
 
 |logMask
 |no
-|CAMEL_KAMELET_LOG_SINK_LOGMASK=false
+|CAMEL_KAMELET_LOG_SINK_LOG_MASK=false
 |Mask sensitive information like password or passphrase in the log
 
 |marker
@@ -28,42 +28,42 @@
 
 |showAllProperties
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWALLPROPERTIES=false
+|CAMEL_KAMELET_LOG_SINK_SHOW_ALL_PROPERTIES=false
 |Show all of the exchange properties (both internal and custom)
 
 |showBody
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWBODY=true
+|CAMEL_KAMELET_LOG_SINK_SHOW_BODY=true
 |Show the message body
 
 |showBodyType
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWBODYTYPE=true
+|CAMEL_KAMELET_LOG_SINK_SHOW_BODY_TYPE=true
 |Show the body Java type
 
 |showExchangePattern
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWEXCHANGEPATTERN=true
+|CAMEL_KAMELET_LOG_SINK_SHOW_EXCHANGE_PATTERN=true
 |Shows the Message Exchange Pattern (or MEP for short)
 
 |showHeaders
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWHEADERS=false
+|CAMEL_KAMELET_LOG_SINK_SHOW_HEADERS=false
 |Show the headers received
 
 |showProperties
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWPROPERTIES=false
+|CAMEL_KAMELET_LOG_SINK_SHOW_PROPERTIES=false
 |Show the exchange properties (only custom). Use showAllProperties to show both internal and custom properties.
 
 |showStreams
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWSTREAMS=false
+|CAMEL_KAMELET_LOG_SINK_SHOW_STREAMS=false
 |Show the stream bodies (they may not be available in following steps)
 
 |showCachedStreams
 |no
-|CAMEL_KAMELET_LOG_SINK_SHOWCACHEDSTREAMS=true
+|CAMEL_KAMELET_LOG_SINK_SHOW_CACHED_STREAMS=true
 |Whether Camel should show cached stream bodies or not.
 
 |===

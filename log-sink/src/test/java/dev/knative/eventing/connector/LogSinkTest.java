@@ -17,7 +17,7 @@
 package dev.knative.eventing.connector;
 
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.GherkinTestActionRunner;
+import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.http.client.HttpClient;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
@@ -33,7 +33,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 public class LogSinkTest {
 
     @CitrusResource
-    private GherkinTestActionRunner tc;
+    private TestCaseRunner tc;
 
     @BindToRegistry
     public HttpClient knativeTrigger = HttpEndpoints.http()

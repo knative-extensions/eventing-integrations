@@ -3,17 +3,17 @@
 
 |topicNameOrArn
 |yes
-|CAMEL_KAMELET_AWS_SNS_SINK_TOPICNAMEORARN=<the_topicNameOrArn>
+|CAMEL_KAMELET_AWS_SNS_SINK_TOPIC_NAME_OR_ARN=<the_topicNameOrArn>
 |The SNS topic name name or Amazon Resource Name (ARN).
 
 |accessKey
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_ACCESSKEY=<the_accessKey>
+|CAMEL_KAMELET_AWS_SNS_SINK_ACCESS_KEY=<the_accessKey>
 |The access key obtained from AWS.
 
 |secretKey
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_SECRETKEY=<the_secretKey>
+|CAMEL_KAMELET_AWS_SNS_SINK_SECRET_KEY=<the_secretKey>
 |The secret key obtained from AWS.
 
 |region
@@ -23,42 +23,42 @@
 
 |autoCreateTopic
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_AUTOCREATETOPIC=false
+|CAMEL_KAMELET_AWS_SNS_SINK_AUTO_CREATE_TOPIC=false
 |Setting the autocreation of the SNS topic.
 
 |useDefaultCredentialsProvider
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_USEDEFAULTCREDENTIALSPROVIDER=false
+|CAMEL_KAMELET_AWS_SNS_SINK_USE_DEFAULT_CREDENTIALS_PROVIDER=false
 |If true, the SNS client loads credentials through a default credentials provider. If false, it uses the basic authentication method (access key and secret key).
 
 |useProfileCredentialsProvider
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_USEPROFILECREDENTIALSPROVIDER=false
+|CAMEL_KAMELET_AWS_SNS_SINK_USE_PROFILE_CREDENTIALS_PROVIDER=false
 |Set whether the SNS client should expect to load credentials through a profile credentials provider.
 
 |useSessionCredentials
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_USESESSIONCREDENTIALS=false
+|CAMEL_KAMELET_AWS_SNS_SINK_USE_SESSION_CREDENTIALS=false
 |Set whether the SNS client should expect to use Session Credentials. This is useful in situation in which the user needs to assume a IAM role for doing operations in SNS.
 
 |profileCredentialsName
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_PROFILECREDENTIALSNAME=<the_profileCredentialsName>
+|CAMEL_KAMELET_AWS_SNS_SINK_PROFILE_CREDENTIALS_NAME=<the_profileCredentialsName>
 |If using a profile credentials provider this parameter will set the profile name.
 
 |sessionToken
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_SESSIONTOKEN=<the_sessionToken>
+|CAMEL_KAMELET_AWS_SNS_SINK_SESSION_TOKEN=<the_sessionToken>
 |Amazon AWS Session Token used when the user needs to assume a IAM role.
 
 |uriEndpointOverride
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_URIENDPOINTOVERRIDE=<the_uriEndpointOverride>
+|CAMEL_KAMELET_AWS_SNS_SINK_URI_ENDPOINT_OVERRIDE=<the_uriEndpointOverride>
 |The overriding endpoint URI. To use this option, you must also select the `overrideEndpoint` option.
 
 |overrideEndpoint
 |no
-|CAMEL_KAMELET_AWS_SNS_SINK_OVERRIDEENDPOINT=false
+|CAMEL_KAMELET_AWS_SNS_SINK_OVERRIDE_ENDPOINT=false
 |Select this option to override the endpoint URI. To use this option, you must also provide a URI for the `uriEndpointOverride` option.
 
 |===

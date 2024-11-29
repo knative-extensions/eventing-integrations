@@ -3,22 +3,22 @@
 
 |queueNameOrArn
 |yes
-|CAMEL_KAMELET_AWS_SQS_SOURCE_QUEUENAMEORARN=<the_queueNameOrArn>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_QUEUE_NAME_OR_ARN=<the_queueNameOrArn>
 |The SQS Queue Name or ARN
 
 |deleteAfterRead
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_DELETEAFTERREAD=true
+|CAMEL_KAMELET_AWS_SQS_SOURCE_DELETE_AFTER_READ=true
 |Delete messages after consuming them
 
 |accessKey
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_ACCESSKEY=<the_accessKey>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_ACCESS_KEY=<the_accessKey>
 |The access key obtained from AWS.
 
 |secretKey
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_SECRETKEY=<the_secretKey>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_SECRET_KEY=<the_secretKey>
 |The secret key obtained from AWS.
 
 |region
@@ -28,12 +28,12 @@
 
 |autoCreateQueue
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_AUTOCREATEQUEUE=false
+|CAMEL_KAMELET_AWS_SQS_SOURCE_AUTO_CREATE_QUEUE=false
 |Setting the autocreation of the SQS queue.
 
 |amazonAWSHost
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_AMAZONAWSHOST=amazonaws.com
+|CAMEL_KAMELET_AWS_SQS_SOURCE_AMAZON_A_W_S_HOST=amazonaws.com
 |The hostname of the Amazon AWS cloud.
 
 |protocol
@@ -43,42 +43,42 @@
 
 |queueURL
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_QUEUEURL=<the_queueURL>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_QUEUE_U_R_L=<the_queueURL>
 |The full SQS Queue URL (required if using KEDA)
 
 |useDefaultCredentialsProvider
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_USEDEFAULTCREDENTIALSPROVIDER=false
+|CAMEL_KAMELET_AWS_SQS_SOURCE_USE_DEFAULT_CREDENTIALS_PROVIDER=false
 |If true, the SQS client loads credentials through a default credentials provider. If false, it uses the basic authentication method (access key and secret key).
 
 |useProfileCredentialsProvider
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_USEPROFILECREDENTIALSPROVIDER=false
+|CAMEL_KAMELET_AWS_SQS_SOURCE_USE_PROFILE_CREDENTIALS_PROVIDER=false
 |Set whether the SQS client should expect to load credentials through a profile credentials provider.
 
 |useSessionCredentials
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_USESESSIONCREDENTIALS=false
+|CAMEL_KAMELET_AWS_SQS_SOURCE_USE_SESSION_CREDENTIALS=false
 |Set whether the SQS client should expect to use Session Credentials. This is useful in situation in which the user needs to assume a IAM role for doing operations in SQS.
 
 |profileCredentialsName
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_PROFILECREDENTIALSNAME=<the_profileCredentialsName>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_PROFILE_CREDENTIALS_NAME=<the_profileCredentialsName>
 |If using a profile credentials provider this parameter will set the profile name.
 
 |sessionToken
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_SESSIONTOKEN=<the_sessionToken>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_SESSION_TOKEN=<the_sessionToken>
 |Amazon AWS Session Token used when the user needs to assume a IAM role.
 
 |uriEndpointOverride
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_URIENDPOINTOVERRIDE=<the_uriEndpointOverride>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_URI_ENDPOINT_OVERRIDE=<the_uriEndpointOverride>
 |The overriding endpoint URI. To use this option, you must also select the `overrideEndpoint` option.
 
 |overrideEndpoint
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_OVERRIDEENDPOINT=false
+|CAMEL_KAMELET_AWS_SQS_SOURCE_OVERRIDE_ENDPOINT=false
 |Select this option to override the endpoint URI. To use this option, you must also provide a URI for the `uriEndpointOverride` option.
 
 |delay
@@ -93,17 +93,17 @@
 
 |maxMessagesPerPoll
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_MAXMESSAGESPERPOLL=1
+|CAMEL_KAMELET_AWS_SQS_SOURCE_MAX_MESSAGES_PER_POLL=1
 |The maximum number of messages to return. Amazon SQS never returns more messages than this value (however, fewer messages might be returned). Valid values 1 to 10. Default 1.
 
 |waitTimeSeconds
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_WAITTIMESECONDS=<the_waitTimeSeconds>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_WAIT_TIME_SECONDS=<the_waitTimeSeconds>
 |The duration (in seconds) for which the call waits for a message to arrive in the queue before returning. If a message is available, the call returns sooner than WaitTimeSeconds. If no messages are available and the wait time expires, the call does not return a message list.
 
 |visibilityTimeout
 |no
-|CAMEL_KAMELET_AWS_SQS_SOURCE_VISIBILITYTIMEOUT=<the_visibilityTimeout>
+|CAMEL_KAMELET_AWS_SQS_SOURCE_VISIBILITY_TIMEOUT=<the_visibilityTimeout>
 |The duration (in seconds) that the received messages are hidden from subsequent retrieve requests after being retrieved by a ReceiveMessage request.
 
 |===

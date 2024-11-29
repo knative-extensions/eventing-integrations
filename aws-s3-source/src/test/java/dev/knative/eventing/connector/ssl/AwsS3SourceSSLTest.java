@@ -22,7 +22,7 @@ import dev.knative.eventing.connector.LocalstackTestResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.GherkinTestActionRunner;
+import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
@@ -55,7 +55,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 public class AwsS3SourceSSLTest {
 
     @CitrusResource
-    private GherkinTestActionRunner tc;
+    private TestCaseRunner tc;
 
     private final String s3Key = "message.txt";
     private final String s3Data = "Hello from secured AWS S3!";

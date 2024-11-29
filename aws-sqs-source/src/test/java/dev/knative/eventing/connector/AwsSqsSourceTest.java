@@ -18,7 +18,7 @@ package dev.knative.eventing.connector;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.GherkinTestActionRunner;
+import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -39,7 +39,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 public class AwsSqsSourceTest {
 
     @CitrusResource
-    private GherkinTestActionRunner tc;
+    private TestCaseRunner tc;
 
     private final String sqsData = "Hello from AWS SQS!";
     private final String sqsQueueName = "myqueue";

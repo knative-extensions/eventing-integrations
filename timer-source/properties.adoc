@@ -13,12 +13,12 @@
 
 |contentType
 |no
-|CAMEL_KAMELET_TIMER_SOURCE_CONTENTTYPE=text/plain
+|CAMEL_KAMELET_TIMER_SOURCE_CONTENT_TYPE=text/plain
 |The content type of the generated message.
 
 |repeatCount
 |no
-|CAMEL_KAMELET_TIMER_SOURCE_REPEATCOUNT=<the_repeatCount>
+|CAMEL_KAMELET_TIMER_SOURCE_REPEAT_COUNT=<the_repeatCount>
 |Specifies a maximum limit of number of fires
 
 |===

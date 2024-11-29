@@ -18,13 +18,11 @@ package dev.knative.eventing.connector.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -38,20 +36,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.AnyType;
-import org.apache.camel.v1.CamelCatalog;
 import org.apache.camel.v1.Kamelet;
 import org.apache.camel.v1.kameletspec.definition.Properties;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectHelper;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.Property;
@@ -67,14 +59,8 @@ public class GenerateConnectorSpecMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project.basedir}")
     protected File output;
-    @Parameter(property = "kn-connector.kamelet.name", required = true)
+    @Parameter(property = "connector.kamelet.name", required = true)
     protected String kameletName;
-    @Parameter(property = "project", required = true, readonly = true)
-    protected MavenProject project;
-    @Component
-    protected MavenProjectHelper projectHelper;
-    @Component
-    private MavenSession session;
     @Parameter(defaultValue = "false")
     private boolean skip;
 
@@ -107,7 +93,7 @@ public class GenerateConnectorSpecMojo extends AbstractMojo {
         kamelet.getSpec().getDefinition().getProperties().forEach((name, prop) -> {
             String envVar = "CAMEL_KAMELET_%s_%s=%s".formatted(
                     kameletName.replace("-", "_").toUpperCase(),
-                    name.toUpperCase(),
+                    camelCaseToDash(name).replace("-", "_").toUpperCase(),
                     Optional.ofNullable(prop.get_default()).map(AnyType::getValue).orElse("<the_%s>".formatted(name)));
 
             asciiDoc.append("|")
@@ -134,6 +120,12 @@ public class GenerateConnectorSpecMojo extends AbstractMojo {
         } catch (IOException e) {
             throw new MojoExecutionException(e);
         }
+    }
+
+    private static String camelCaseToDash(String name) {
+        return name.chars()
+                .mapToObj(current -> Character.isUpperCase(current) ? "-" + Character.toString(current).toLowerCase() : Character.toString(current))
+                .collect(Collectors.joining());
     }
 
     private void generatePropertiesSpec(Kamelet kamelet) throws MojoExecutionException {
