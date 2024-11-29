@@ -27,7 +27,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>connector-${artifactId}</artifactId>
+  <artifactId>${artifactId}</artifactId>
   <name>Knative Connectors :: ${kamelet-name} Source</name>
 
   <dependencies>
