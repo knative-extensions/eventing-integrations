@@ -17,9 +17,9 @@
 package dev.knative.eventing.connector;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-import io.quarkus.test.common.QuarkusTestResource;
-import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
@@ -28,6 +28,9 @@ import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
+import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
+import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -40,10 +43,8 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@QuarkusTestResource(value = LocalstackTestResource.class, restrictToAnnotatedClass = true, initArgs = {
-        @ResourceArg(name = "bucketNameOrArn", value = "mybucket")
-})
-public class AwsS3SourceTest {
+@LocalStackContainerSupport(services = LocalStackContainer.Service.S3, containerLifecycleListener = AwsS3SourceTest.class)
+public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
     private TestCaseRunner tc;
@@ -52,8 +53,8 @@ public class AwsS3SourceTest {
     private final String s3Data = "Hello from AWS S3!";
     private final String s3BucketName = "mybucket";
 
-    @LocalstackTestResource.Injected
-    public S3Client s3Client;
+    @CitrusResource
+    private LocalStackContainer localStackContainer;
 
     @BindToRegistry
     public HttpServer knativeBroker = HttpEndpoints.http()
@@ -86,6 +87,8 @@ public class AwsS3SourceTest {
     }
 
     private void uploadS3File(TestContext context) {
+        S3Client s3Client = localStackContainer.getClient(LocalStackContainer.Service.S3);
+
         CreateMultipartUploadResponse initResponse = s3Client.createMultipartUpload(b -> b.bucket(s3BucketName).key(s3Key));
         String etag = s3Client.uploadPart(b -> b.bucket(s3BucketName)
                         .key(s3Key)
@@ -99,5 +102,23 @@ public class AwsS3SourceTest {
                                 .eTag(etag).build())).build())
                 .key(s3Key)
                 .uploadId(initResponse.uploadId()));
+    }
+
+    @Override
+    public Map<String, String> started(LocalStackContainer container) {
+        S3Client s3Client = container.getClient(LocalStackContainer.Service.S3);
+
+        s3Client.createBucket(b -> b.bucket(s3BucketName));
+
+        Map<String, String> conf = new HashMap<>();
+        conf.put("camel.kamelet.aws-s3-source.accessKey", container.getAccessKey());
+        conf.put("camel.kamelet.aws-s3-source.secretKey", container.getSecretKey());
+        conf.put("camel.kamelet.aws-s3-source.region", container.getRegion());
+        conf.put("camel.kamelet.aws-s3-source.bucketNameOrArn", s3BucketName);
+        conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", container.getServiceEndpoint().toString());
+        conf.put("camel.kamelet.aws-s3-source.overrideEndpoint", "true");
+        conf.put("camel.kamelet.aws-s3-source.forcePathStyle", "true");
+
+        return conf;
     }
 }

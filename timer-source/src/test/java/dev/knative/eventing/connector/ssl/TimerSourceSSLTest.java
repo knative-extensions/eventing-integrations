@@ -16,14 +16,16 @@
 
 package dev.knative.eventing.connector.ssl;
 
-import io.quarkus.test.common.QuarkusTestResource;
-import io.quarkus.test.common.ResourceArg;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.security.HttpSecureConnection;
 import org.citrusframework.http.server.HttpServer;
+import org.citrusframework.quarkus.ApplicationPropertiesSupplier;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
 import org.junit.jupiter.api.Test;
@@ -32,18 +34,8 @@ import org.springframework.http.HttpStatus;
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
-@CitrusSupport
-@QuarkusTestResource(value = DeploymentTestResource.class, restrictToAnnotatedClass = true, initArgs = {
-        @ResourceArg(name = "message", value = "Hello from timer-source!"),
-        @ResourceArg(name = "k.sink", value = "https://localhost:8443"),
-        @ResourceArg(name = "camel.knative.client.ssl.enabled", value = "true"),
-        @ResourceArg(name = "camel.knative.client.ssl.verify.hostname", value = "false"),
-        @ResourceArg(name = "camel.knative.client.ssl.key.path", value = "keystore/client.pem"),
-        @ResourceArg(name = "camel.knative.client.ssl.key.cert.path", value = "keystore/client.crt"),
-        @ResourceArg(name = "camel.knative.client.ssl.truststore.path", value = "keystore/truststore.jks"),
-        @ResourceArg(name = "camel.knative.client.ssl.truststore.password", value = "secr3t")
-})
-public class TimerSourceSSLTest {
+@CitrusSupport(applicationPropertiesSupplier = TimerSourceSSLTest.class)
+public class TimerSourceSSLTest implements ApplicationPropertiesSupplier {
 
     @CitrusResource
     private TestCaseRunner tc;
@@ -82,4 +74,17 @@ public class TimerSourceSSLTest {
         );
     }
 
+    @Override
+    public Map<String, String> get() {
+        Map<String, String> conf = new HashMap<>();
+        conf.put("k.sink", "https://localhost:8443");
+        conf.put("camel.kamelet.timer-source.message", "Hello from timer-source!");
+        conf.put("camel.knative.client.ssl.enabled", "true");
+        conf.put("camel.knative.client.ssl.verify.hostname", "false");
+        conf.put("camel.knative.client.ssl.key.path", "keystore/client.pem");
+        conf.put("camel.knative.client.ssl.key.cert.path", "keystore/client.crt");
+        conf.put("camel.knative.client.ssl.truststore.path", "keystore/truststore.jks");
+        conf.put("camel.knative.client.ssl.truststore.password", "secr3t");
+        return conf;
+    }
 }

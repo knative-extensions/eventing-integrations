@@ -16,7 +16,9 @@
 
 package dev.knative.eventing.connector;
 
-import io.quarkus.test.common.QuarkusTestResource;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
@@ -26,6 +28,9 @@ import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
+import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
+import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -35,8 +40,8 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@QuarkusTestResource(LocalstackTestResource.class)
-public class AwsSqsSourceTest {
+@LocalStackContainerSupport(services = LocalStackContainer.Service.SQS, containerLifecycleListener = AwsSqsSourceTest.class)
+public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
     private TestCaseRunner tc;
@@ -44,8 +49,8 @@ public class AwsSqsSourceTest {
     private final String sqsData = "Hello from AWS SQS!";
     private final String sqsQueueName = "myqueue";
 
-    @LocalstackTestResource.Injected
-    public SqsClient sqsClient;
+    @CitrusResource
+    private LocalStackContainer localStackContainer;
 
     @BindToRegistry
     public HttpServer knativeBroker = HttpEndpoints.http()
@@ -78,6 +83,8 @@ public class AwsSqsSourceTest {
     }
 
     private void sendSqsEvent(TestContext context) {
+        SqsClient sqsClient = localStackContainer.getClient(LocalStackContainer.Service.SQS);
+
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
 
@@ -87,5 +94,21 @@ public class AwsSqsSourceTest {
                 .orElseThrow(() -> new CitrusRuntimeException("Queue %s not found".formatted(sqsQueueName)));
 
         sqsClient.sendMessage(b -> b.queueUrl(queueUrl).messageBody(sqsData));
+    }
+
+    @Override
+    public Map<String, String> started(LocalStackContainer container) {
+        // Create SQS queue acting as a SNS notification endpoint
+        SqsClient sqsClient = container.getClient(LocalStackContainer.Service.SQS);
+        sqsClient.createQueue(b -> b.queueName(sqsQueueName));
+
+        Map<String, String> conf = new HashMap<>();
+        conf.put("camel.kamelet.aws-sqs-source.accessKey", container.getAccessKey());
+        conf.put("camel.kamelet.aws-sqs-source.secretKey", container.getSecretKey());
+        conf.put("camel.kamelet.aws-sqs-source.region", container.getRegion());
+        conf.put("camel.kamelet.aws-sqs-source.queueNameOrArn", sqsQueueName);
+        conf.put("camel.kamelet.aws-sqs-source.uriEndpointOverride", container.getServiceEndpoint().toString());
+        conf.put("camel.kamelet.aws-sqs-source.overrideEndpoint", "true");
+        return conf;
     }
 }

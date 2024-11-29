@@ -17,10 +17,9 @@
 package dev.knative.eventing.connector.ssl;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.knative.eventing.connector.LocalstackTestResource;
-import io.quarkus.test.common.QuarkusTestResource;
-import io.quarkus.test.common.ResourceArg;
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
@@ -30,9 +29,15 @@ import org.citrusframework.http.security.HttpSecureConnection;
 import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
+import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
+import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -42,17 +47,8 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@QuarkusTestResource(value = LocalstackTestResource.class, restrictToAnnotatedClass = true, initArgs = {
-        @ResourceArg(name = "bucketNameOrArn", value = "mybucket"),
-        @ResourceArg(name = "k.sink", value = "https://localhost:8443"),
-        @ResourceArg(name = "camel.knative.client.ssl.enabled", value = "true"),
-        @ResourceArg(name = "camel.knative.client.ssl.verify.hostname", value = "false"),
-        @ResourceArg(name = "camel.knative.client.ssl.key.path", value = "keystore/client.pem"),
-        @ResourceArg(name = "camel.knative.client.ssl.key.cert.path", value = "keystore/client.crt"),
-        @ResourceArg(name = "camel.knative.client.ssl.truststore.path", value = "keystore/truststore.jks"),
-        @ResourceArg(name = "camel.knative.client.ssl.truststore.password", value = "secr3t")
-})
-public class AwsS3SourceSSLTest {
+@LocalStackContainerSupport(services = LocalStackContainer.Service.S3, containerLifecycleListener = AwsS3SourceSSLTest.class)
+public class AwsS3SourceSSLTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
     private TestCaseRunner tc;
@@ -61,8 +57,8 @@ public class AwsS3SourceSSLTest {
     private final String s3Data = "Hello from secured AWS S3!";
     private final String s3BucketName = "mybucket";
 
-    @LocalstackTestResource.Injected
-    public S3Client s3Client;
+    @CitrusResource
+    private LocalStackContainer localStackContainer;
 
     @BindToRegistry
     public HttpServer knativeBroker = HttpEndpoints.http()
@@ -99,6 +95,8 @@ public class AwsS3SourceSSLTest {
     }
 
     private void uploadS3File(TestContext context) {
+        S3Client s3Client = createS3Client(localStackContainer);
+
         CreateMultipartUploadResponse initResponse = s3Client.createMultipartUpload(b -> b.bucket(s3BucketName).key(s3Key));
         String etag = s3Client.uploadPart(b -> b.bucket(s3BucketName)
                         .key(s3Key)
@@ -112,5 +110,44 @@ public class AwsS3SourceSSLTest {
                                 .eTag(etag).build())).build())
                 .key(s3Key)
                 .uploadId(initResponse.uploadId()));
+    }
+
+    @Override
+    public Map<String, String> started(LocalStackContainer container) {
+        S3Client s3Client = createS3Client(container);
+
+        s3Client.createBucket(b -> b.bucket(s3BucketName));
+
+        Map<String, String> conf = new HashMap<>();
+        conf.put("camel.kamelet.aws-s3-source.accessKey", container.getAccessKey());
+        conf.put("camel.kamelet.aws-s3-source.secretKey", container.getSecretKey());
+        conf.put("camel.kamelet.aws-s3-source.region", container.getRegion());
+        conf.put("camel.kamelet.aws-s3-source.bucketNameOrArn", s3BucketName);
+        conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", container.getServiceEndpoint().toString());
+        conf.put("camel.kamelet.aws-s3-source.overrideEndpoint", "true");
+        conf.put("camel.kamelet.aws-s3-source.forcePathStyle", "true");
+
+       conf.put("k.sink", "https://localhost:8443");
+       conf.put("camel.knative.client.ssl.enabled", "true");
+       conf.put("camel.knative.client.ssl.verify.hostname", "false");
+       conf.put("camel.knative.client.ssl.key.path", "keystore/client.pem");
+       conf.put("camel.knative.client.ssl.key.cert.path", "keystore/client.crt");
+       conf.put("camel.knative.client.ssl.truststore.path", "keystore/truststore.jks");
+       conf.put("camel.knative.client.ssl.truststore.password", "secr3t");
+
+        return conf;
+    }
+
+    private static S3Client createS3Client(LocalStackContainer container) {
+        return S3Client.builder()
+                .endpointOverride(container.getServiceEndpoint())
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(container.getAccessKey(), container.getSecretKey())
+                        )
+                )
+                .forcePathStyle(true)
+                .region(Region.of(container.getRegion()))
+                .build();
     }
 }

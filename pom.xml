@@ -18,14 +18,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <camel.version>4.9.0</camel.version>
-        <citrus.version>4.4.0</citrus.version>
+        <citrus.version>4.5.0</citrus.version>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.17.0</quarkus.platform.version>
         <quarkus.kubernetes-client.generate-rbac>false</quarkus.kubernetes-client.generate-rbac>
         <quarkus.container-image.insecure>true</quarkus.container-image.insecure>
         <quarkus.container-image.registry>localhost:5001</quarkus.container-image.registry>
         <quarkus.container-image.group>openshift-knative</quarkus.container-image.group>
-        <testcontainers.version>1.20.1</testcontainers.version>
 
         <!-- needed from tooling/archetypes -->
         <maven-version>3.9.9</maven-version>
@@ -87,27 +86,14 @@
             </dependency>
             <dependency>
                 <groupId>org.citrusframework</groupId>
-                <artifactId>citrus-validation-json</artifactId>
+                <artifactId>citrus-testcontainers</artifactId>
                 <version>${citrus.version}</version>
                 <scope>test</scope>
             </dependency>
-            <!-- Testcontainers -->
             <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers</artifactId>
-                <version>${testcontainers.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>${testcontainers.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>localstack</artifactId>
-                <version>${testcontainers.version}</version>
+                <groupId>org.citrusframework</groupId>
+                <artifactId>citrus-validation-json</artifactId>
+                <version>${citrus.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -202,33 +188,6 @@
                 <skipITs>false</skipITs>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
-        </profile>
-        <profile>
-            <id>camel.debug</id>
-            <activation>
-                <property>
-                    <name>camel.debug</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.camel.quarkus</groupId>
-                    <artifactId>camel-quarkus-debug</artifactId>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>${quarkus.platform.group-id}</groupId>
-                        <artifactId>quarkus-maven-plugin</artifactId>
-                        <version>${quarkus.platform.version}</version>
-                        <configuration>
-                            <jvmArgs>-Dcamel.main.shutdownTimeout=30 -Dquarkus.camel.source-location-enabled=true</jvmArgs>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 
