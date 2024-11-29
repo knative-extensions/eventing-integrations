@@ -20,8 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -36,9 +35,8 @@ import software.amazon.awssdk.services.dynamodb.model.StreamViewType;
 
 public class LocalstackTestResource implements QuarkusTestResourceLifecycleManager {
 
-    private final LocalStackContainer localStackContainer =
-            new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.7.2"))
-                    .withServices(LocalStackContainer.Service.DYNAMODB);
+    private final LocalStackContainer localStackContainer = new LocalStackContainer()
+                        .withServices(LocalStackContainer.Service.DYNAMODB);
 
     private DynamoDbClient ddbClient;
 
@@ -47,7 +45,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         localStackContainer.start();
 
         ddbClient = DynamoDbClient.builder()
-                .endpointOverride(localStackContainer.getEndpoint())
+                .endpointOverride(localStackContainer.getServiceEndpoint())
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
@@ -76,7 +74,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         conf.put("camel.kamelet.aws-ddb-streams-source.secretKey", localStackContainer.getSecretKey());
         conf.put("camel.kamelet.aws-ddb-streams-source.region", localStackContainer.getRegion());
         conf.put("camel.kamelet.aws-ddb-streams-source.table", "movies");
-        conf.put("camel.kamelet.aws-ddb-streams-source.uriEndpointOverride", localStackContainer.getEndpoint().toString());
+        conf.put("camel.kamelet.aws-ddb-streams-source.uriEndpointOverride", localStackContainer.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-ddb-streams-source.overrideEndpoint", "true");
         conf.put("camel.kamelet.aws-ddb-streams-source.streamIteratorType", "FROM_START");
 

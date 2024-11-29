@@ -20,8 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -29,9 +28,8 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 
 public class LocalstackTestResource implements QuarkusTestResourceLifecycleManager {
 
-    private final LocalStackContainer localStackContainer =
-            new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.7.2"))
-                    .withServices(LocalStackContainer.Service.SQS);
+    private final LocalStackContainer localStackContainer = new LocalStackContainer()
+                        .withServices(LocalStackContainer.Service.SQS);
 
     private SqsClient sqsClient;
 
@@ -40,7 +38,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         localStackContainer.start();
 
         sqsClient = SqsClient.builder()
-                .endpointOverride(localStackContainer.getEndpoint())
+                .endpointOverride(localStackContainer.getServiceEndpoint())
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
@@ -56,7 +54,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         conf.put("camel.kamelet.aws-sqs-sink.secretKey", localStackContainer.getSecretKey());
         conf.put("camel.kamelet.aws-sqs-sink.region", localStackContainer.getRegion());
         conf.put("camel.kamelet.aws-sqs-sink.queueNameOrArn", "myqueue");
-        conf.put("camel.kamelet.aws-sqs-sink.uriEndpointOverride", localStackContainer.getEndpoint().toString());
+        conf.put("camel.kamelet.aws-sqs-sink.uriEndpointOverride", localStackContainer.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-sqs-sink.overrideEndpoint", "true");
 
         return conf;

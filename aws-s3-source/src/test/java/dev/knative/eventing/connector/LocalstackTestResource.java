@@ -20,8 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -29,9 +28,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 public class LocalstackTestResource implements QuarkusTestResourceLifecycleManager {
 
-    private final LocalStackContainer localStackContainer =
-            new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.7.2"))
-                    .withServices(LocalStackContainer.Service.S3);
+    private final LocalStackContainer localStackContainer = new LocalStackContainer()
+                        .withServices(LocalStackContainer.Service.S3);
 
     private S3Client s3Client;
 
@@ -47,7 +45,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         localStackContainer.start();
 
         s3Client = S3Client.builder()
-                .endpointOverride(localStackContainer.getEndpoint())
+                .endpointOverride(localStackContainer.getServiceEndpoint())
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
@@ -65,7 +63,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         conf.put("camel.kamelet.aws-s3-source.secretKey", localStackContainer.getSecretKey());
         conf.put("camel.kamelet.aws-s3-source.region", localStackContainer.getRegion());
         conf.put("camel.kamelet.aws-s3-source.bucketNameOrArn", bucketNameOrArn);
-        conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", localStackContainer.getEndpoint().toString());
+        conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", localStackContainer.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-s3-source.overrideEndpoint", "true");
         conf.put("camel.kamelet.aws-s3-source.forcePathStyle", "true");
 

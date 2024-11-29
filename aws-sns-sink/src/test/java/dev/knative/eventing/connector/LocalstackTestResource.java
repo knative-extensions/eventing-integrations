@@ -20,9 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
+import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import org.junit.jupiter.api.Assertions;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -33,9 +32,8 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 
 public class LocalstackTestResource implements QuarkusTestResourceLifecycleManager {
 
-    private final LocalStackContainer localStackContainer =
-            new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.7.2"))
-                    .withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.SNS);
+    private final LocalStackContainer localStackContainer = new LocalStackContainer()
+                        .withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.SNS);
 
     private SqsClient sqsClient;
     private SnsClient snsClient;
@@ -53,7 +51,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
 
         // Create SQS queue acting as a SNS notification endpoint
         sqsClient = SqsClient.builder()
-                .endpointOverride(localStackContainer.getEndpoint())
+                .endpointOverride(localStackContainer.getServiceEndpoint())
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
@@ -67,7 +65,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
 
         // Create SNS topic
         snsClient = SnsClient.builder()
-                .endpointOverride(localStackContainer.getEndpoint())
+                .endpointOverride(localStackContainer.getServiceEndpoint())
                 .credentialsProvider(
                         StaticCredentialsProvider.create(
                                 AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
@@ -92,7 +90,7 @@ public class LocalstackTestResource implements QuarkusTestResourceLifecycleManag
         conf.put("camel.kamelet.aws-sns-sink.secretKey", localStackContainer.getSecretKey());
         conf.put("camel.kamelet.aws-sns-sink.region", localStackContainer.getRegion());
         conf.put("camel.kamelet.aws-sns-sink.topicNameOrArn", topicNameOrArn);
-        conf.put("camel.kamelet.aws-sns-sink.uriEndpointOverride", localStackContainer.getEndpoint().toString());
+        conf.put("camel.kamelet.aws-sns-sink.uriEndpointOverride", localStackContainer.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-sns-sink.overrideEndpoint", "true");
 
         conf.putAll(injectedConf);
