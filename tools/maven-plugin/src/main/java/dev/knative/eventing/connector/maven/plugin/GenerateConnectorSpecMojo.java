@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -145,6 +146,7 @@ public class GenerateConnectorSpecMojo extends AbstractMojo {
             Files.writeString(Paths.get(output.getAbsolutePath(), "target/metadata/dependencies.json"), json().writer().withDefaultPrettyPrinter()
                             .writeValueAsString(kamelet.getSpec().getDependencies()
                                     .stream()
+                                    .filter(Objects::nonNull)
                                     .filter(it -> !"camel:core".equals(it))
                                     .filter(it -> !"camel:kamelet".equals(it))
                                     .filter(it -> !it.contains("org.apache.camel.kamelets:camel-kamelets-utils"))
