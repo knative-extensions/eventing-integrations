@@ -43,11 +43,11 @@ function generate_configMap() {
   image_digests=$(find . -name "jib-image.digest")
 
   cat <<EOF > ${CONFIMAP_YAML}
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: eventing-integrations-images
-    data:
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eventing-integrations-images
+data:
 EOF
 
   # shellcheck disable=SC2068
