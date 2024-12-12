@@ -421,6 +421,51 @@ As you can see the SSL client support provides multiple ways to configure keysto
 It is recommended to set keystore/truststore passwords vie secretKeyRef on the IntegrationSource spec.
 When no truststore configuration is given the SSL client support defaults to using trust all options.
 
+== OIDC support
+
+The Knative broker may require a client to use proper OIDC (OpenID Connect) tokens as an authorization.
+This means that Event producers need to add the authorization header to events sent to the broker.
+
+The IntegrationSource can use a volume mount with the OIDC token being injected via ConfigMap or Secret.
+
+You need to enable the OIDC support on the integration and set the path to the OIDC token.
+You can do this via environment variables:
+
+* CAMEL_KNATIVE_CLIENT_OIDC_ENABLED=true
+* CAMEL_KNATIVE_CLIENT_OIDC_TOKEN_PATH=/oidc/token
+
+This enables the OIDC options on the Knative Http client that connects with the broker endpoint.
+The OIDC client options know these environment variables:
+
+|===
+|EnvVar |Description
+
+|CAMEL_KNATIVE_CLIENT_OIDC_ENABLED
+|Enable/disable OIDC options on the Http client. Default value is `false`.
+
+|CAMEL_KNATIVE_CLIENT_OIDC_TOKEN_PATH
+|Path to the OIDC token.
+
+|CAMEL_KNATIVE_CLIENT_OIDC_RENEW_TOKENS_ON_FORBIDDEN
+|Enable/disable the automatic renewal when client receives a forbidden response from the broker. Default is disabled (=false)
+
+|CAMEL_KNATIVE_CLIENT_OIDC_CACHE_TOKENS
+|Enable/disable token caching. When enabled token is retrieved once and will be cached as long as broker does not respond with a forbidden response. Default is disabled (=false).
+
+|===
+
+=== OIDC token renewal
+
+The OIDC tokens may expire and get renewed by Knative eventing.
+The renewal means that the volume mount is updated with the new token automatically.
+
+In order to refresh the token the Camel Knative client must read the token again.
+The Knative client options supports the token renewal on a `401 forbidden` response from the Knative broker.
+
+Once the client has received the forbidden answer it automatically reloads the token from the volume mount to perform the renewal.
+
+As an alternative to that you may disable the token cache on the client so the token is always read from the volume mount for each request.
+
 == Dependencies
 
 The required Camel dependencies need to be added to the Maven POM before building and deploying.

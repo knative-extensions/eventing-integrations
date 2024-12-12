@@ -32,12 +32,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>dev.knative.eventing</groupId>
-      <artifactId>connector-utils</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.camel.quarkus</groupId>
       <artifactId>camel-quarkus-core</artifactId>
     </dependency>

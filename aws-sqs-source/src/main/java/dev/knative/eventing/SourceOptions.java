@@ -16,16 +16,24 @@
 
 package dev.knative.eventing;
 
-import dev.knative.eventing.source.KnativeHttpClientOptions;
+import io.vertx.ext.web.client.WebClientOptions;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
 import org.apache.camel.CamelContext;
+import org.apache.camel.component.knative.http.KnativeOidcClientOptions;
+import org.apache.camel.component.knative.http.KnativeSslClientOptions;
 
 @ApplicationScoped
 public class SourceOptions {
 
     @Named("knativeHttpClientOptions")
-    public KnativeHttpClientOptions knativeHttpClientOptions(CamelContext camelContext) {
-        return new KnativeHttpClientOptions(camelContext);
+    public WebClientOptions knativeHttpClientOptions(CamelContext camelContext) {
+        KnativeOidcClientOptions oidcClientOptions = new KnativeOidcClientOptions();
+        oidcClientOptions.setCamelContext(camelContext);
+        if (oidcClientOptions.isOidcEnabled()) {
+            return oidcClientOptions;
+        }
+
+        return new KnativeSslClientOptions(camelContext);
     }
 }
