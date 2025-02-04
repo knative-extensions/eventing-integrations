@@ -1,0 +1,16 @@
+{
+  "specversion": specversion,
+  "type": type,
+  "source": source,
+  "subject": subject,
+  "id": id,
+  "time": time,
+  "datacontenttype": datacontenttype,
+  "apiversion": apiversion,
+  "kind": kind,
+  "knativearrivaltime": knativearrivaltime,
+  "name": name,
+  "namespace": namespace,
+  "vmtemplate": data.metadata.labels."vm.kubevirt.io/template",
+  "data": data
+}

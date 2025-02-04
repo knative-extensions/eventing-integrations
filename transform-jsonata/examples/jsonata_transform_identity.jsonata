@@ -1,0 +1,7 @@
+{
+  "specversion": "1.0",
+  "id": "67dd883c-36a7-4d8f-b311-db4997325fa1",
+  "type": "transformation.jsonata",
+  "source": "transformation.json.identity",
+  "data": $
+}
