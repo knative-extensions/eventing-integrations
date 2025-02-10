@@ -42,6 +42,16 @@ docker run --user $(id -u):$(id -g) -ti --rm --mount src="$(pwd)/examples",dst=/
 curl -v -XPOST http://localhost:8080 -d @examples/ce_apiserversource_kubevirt.json
 ```
 
+```shell
+curl -v -XPOST http://localhost:8080 \
+    -H "content-type: application/json"  \
+    -H "ce-specversion: 1.0"  \
+    -H "ce-source: my/curl/command"  \
+    -H "ce-type: my.demo.event"  \
+    -H "ce-id: 0815"  \
+    -d '{"name":"curl"}'
+```
+
 ## Testing transformations
 
 https://try.jsonata.org/

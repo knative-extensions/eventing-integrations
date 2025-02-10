@@ -2,8 +2,8 @@
   "version": "0.0.1",
   "author": "Knative authors",
   "scripts": {
-    "dev": "NODE_ENV=development JSONATA_TRANSFORM_FILE_NAME=./examples/jsonata_transform_identity.jsonata nodemon ./jsonata.js",
-    "dev-kubevirt": "NODE_ENV=development JSONATA_TRANSFORM_FILE_NAME=./examples/ce_apiserversource_kubevirt.jsonata nodemon ./jsonata.js"
+    "dev": "NODE_ENV=development OIDC_TOKEN_FILE=./examples/example-token.txt JSONATA_TRANSFORM_FILE_NAME=./examples/jsonata_transform_identity.jsonata nodemon ./jsonata.js",
+    "dev-kubevirt": "NODE_ENV=development OIDC_TOKEN_FILE=./examples/example-token.txt JSONATA_TRANSFORM_FILE_NAME=./examples/ce_apiserversource_kubevirt.jsonata nodemon ./jsonata.js"
   },
   "dependencies": {
     "jsonata": "^2.0.6",
