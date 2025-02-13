@@ -16,8 +16,10 @@
 
 # shellcheck disable=SC1090
 source "$(go run knative.dev/hack/cmd/script release.sh)"
+source "$(dirname $0)/common.sh"
 
-CONFIMAP_YAML="eventing-integrations-images.yaml"
+INTEGRATION_CONFIGMAP_YAML="eventing-integrations-images.yaml"
+TRANSFORMATION_CONFIGMAP_YAML="eventing-transformations-images.yaml"
 IMAGES_TXT="images.txt"
 
 function build_release() {
@@ -27,26 +29,50 @@ function build_release() {
 
   ./mvnw clean package -P knative -DskipTests || return $?
 
+  # use the function so that the exported TRANSFORM_JSONATA_IMAGE is visible after during generate_transformation_configMap
+  build_transform_jsonata_image || return $?
+
   echo "Image build & push completed"
 
   echo "Collect image shas into ConfigMap"
-  generate_configMap
+  generate_integration_configMap || return $?
+  generate_transformation_configMap || return $?
 
-  ARTIFACTS_TO_PUBLISH="${CONFIMAP_YAML} ${IMAGES_TXT}"
+  ARTIFACTS_TO_PUBLISH="${INTEGRATION_CONFIGMAP_YAML} ${TRANSFORMATION_CONFIGMAP_YAML} ${IMAGES_TXT}"
   sha256sum ${ARTIFACTS_TO_PUBLISH} >checksums.txt
   ARTIFACTS_TO_PUBLISH="${ARTIFACTS_TO_PUBLISH} checksums.txt"
   echo "Checksum:"
   cat checksums.txt
 }
 
-function generate_configMap() {
+
+
+function generate_transformation_configMap() {
+
+  cat <<EOF > ${TRANSFORMATION_CONFIGMAP_YAML}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eventing-transformations-images
+  namespace: knative-eventing
+  labels:
+    app.kubernetes.io/version: "${TAG}"
+data:
+  transform-jsonata: ${TRANSFORM_JSONATA_IMAGE}
+EOF
+}
+
+function generate_integration_configMap() {
   image_digests=$(find . -name "jib-image.digest")
 
-  cat <<EOF > ${CONFIMAP_YAML}
+  cat <<EOF > ${INTEGRATION_CONFIGMAP_YAML}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: eventing-integrations-images
+  namespace: knative-eventing
+  labels:
+    app.kubernetes.io/version: "${TAG}"
 data:
 EOF
 
@@ -56,7 +82,7 @@ EOF
     image=$(echo "${image_digest_path}" | cut -d "/" -f2)
     image_digest=$(cat "${image_digest_path}")
     # Config map with key value imageName:imageRef
-    echo "  ${image}: ${KO_DOCKER_REPO}/${image}:${image_digest}" >>${CONFIMAP_YAML}
+    echo "  ${image}: ${KO_DOCKER_REPO}/${image}:${image_digest}" >>${INTEGRATION_CONFIGMAP_YAML}
     # Storing plain image URLs in a txt file
     echo "${KO_DOCKER_REPO}/${image}:${image_digest}" >>${IMAGES_TXT}
   done
