@@ -10,7 +10,9 @@ readonly REPO_ROOT_DIR
 function build_transform_jsonata_image() {
   local image="${KO_DOCKER_REPO}/transform-jsonata:${TAG}"
 
-  docker build \
+  docker version
+
+  docker buildx build \
     --platform "linux/amd64" \
     --platform "linux/arm64" \
     -t "${image}" \
