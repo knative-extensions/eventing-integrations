@@ -3,8 +3,7 @@ FROM registry.access.redhat.com/ubi9/nodejs-20 AS builder
 # Set working directory
 WORKDIR /app
 
-# Ensure the working directory has appropriate permissions
-RUN mkdir -p /app && chown -R 1001:0 /app
+# Switch to non-root user
 USER 1001
 
 # Install pnpm globally
@@ -30,8 +29,7 @@ ENV NODE_ENV=production
 # Set working directory
 WORKDIR /app
 
-# Ensure the working directory has appropriate permissions
-RUN mkdir -p /app && chown -R 1001:0 /app
+# Switch to non-root user
 USER 1001
 
 # Copy built files and dependencies
