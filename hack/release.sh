@@ -27,10 +27,11 @@ function build_release() {
 
   # KO_DOCKER_REPO and TAG are calculated in release.sh script
 
-  ./mvnw clean package -P knative -DskipTests || return $?
+  build_integration_images || return $?
 
   # use the function so that the exported TRANSFORM_JSONATA_IMAGE is visible after during generate_transformation_configMap
   build_transform_jsonata_image || return $?
+  push_transform_jsonata_image || return $?
 
   echo "Image build & push completed"
 
