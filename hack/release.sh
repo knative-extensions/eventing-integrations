@@ -82,9 +82,9 @@ EOF
     image=$(echo "${image_digest_path}" | cut -d "/" -f2)
     image_digest=$(cat "${image_digest_path}")
     # Config map with key value imageName:imageRef
-    echo "  ${image}: ${KO_DOCKER_REPO}/${image}:${image_digest}" >>${INTEGRATION_CONFIGMAP_YAML}
+    echo "  ${image}: ${KO_DOCKER_REPO}/${image}@${image_digest}" >>${INTEGRATION_CONFIGMAP_YAML}
     # Storing plain image URLs in a txt file
-    echo "${KO_DOCKER_REPO}/${image}:${image_digest}" >>${IMAGES_TXT}
+    echo "${KO_DOCKER_REPO}/${image}@${image_digest}" >>${IMAGES_TXT}
   done
 }
 
