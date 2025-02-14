@@ -10,14 +10,32 @@ readonly REPO_ROOT_DIR
 function build_transform_jsonata_image() {
   local image="${KO_DOCKER_REPO}/transform-jsonata:${TAG}"
 
+  docker version
+
   docker buildx build \
-    --platform linux/amd64,linux/arm64 \
-    -t "${image}" \
+    --platform "linux/amd64" \
+    -t "${image}-amd64" \
     -f "${REPO_ROOT_DIR}/transform-jsonata/Dockerfile" \
-    --push \
     "${REPO_ROOT_DIR}/transform-jsonata" || return $?
 
+  docker buildx build \
+    --platform "linux/arm64" \
+    -t "${image}-arm64" \
+    -f "${REPO_ROOT_DIR}/transform-jsonata/Dockerfile" \
+    "${REPO_ROOT_DIR}/transform-jsonata" || return $?
+
+  docker manifest create "${image}" \
+      "${image}-amd64" \
+      "${image}-arm64"
 
   TRANSFORM_JSONATA_IMAGE=$(docker inspect --format '{{index .RepoDigests 0}}' "${image}")
   export TRANSFORM_JSONATA_IMAGE
+}
+
+function push_transform_jsonata_image() {
+    docker manifest push "${TRANSFORM_JSONATA_IMAGE}" || return $?
+}
+
+function build_integration_images() {
+  "${REPO_ROOT_DIR}/mvnw" clean package -P knative -DskipTests || return $?
 }
