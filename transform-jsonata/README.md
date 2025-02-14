@@ -20,6 +20,14 @@ pnpm dev
 # or pnpm dev-kubevirt to inject a different example transformation
 ```
 
+### Tracing
+
+```shell
+docker run --rm -d -p 9411:9411 openzipkin/zipkin
+
+pnpm dev-zipkin
+```
+
 ## Building
 
 Assuming current working directory is `transform-jsonata`
