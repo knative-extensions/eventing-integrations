@@ -14,18 +14,26 @@ function build_transform_jsonata_image() {
 
   docker buildx build \
     --platform "linux/amd64" \
-    --platform "linux/arm64" \
-    -t "${image}" \
+    -t "${image}-amd64" \
     -f "${REPO_ROOT_DIR}/transform-jsonata/Dockerfile" \
     "${REPO_ROOT_DIR}/transform-jsonata" || return $?
 
+  docker buildx build \
+    --platform "linux/arm64" \
+    -t "${image}-arm64" \
+    -f "${REPO_ROOT_DIR}/transform-jsonata/Dockerfile" \
+    "${REPO_ROOT_DIR}/transform-jsonata" || return $?
+
+  docker manifest create "${image}" \
+      "${image}-amd64" \
+      "${image}-arm64"
 
   TRANSFORM_JSONATA_IMAGE=$(docker inspect --format '{{index .RepoDigests 0}}' "${image}")
   export TRANSFORM_JSONATA_IMAGE
 }
 
 function push_transform_jsonata_image() {
-    docker push "${TRANSFORM_JSONATA_IMAGE}" || return $?
+    docker manifest push "${TRANSFORM_JSONATA_IMAGE}" || return $?
 }
 
 function build_integration_images() {
