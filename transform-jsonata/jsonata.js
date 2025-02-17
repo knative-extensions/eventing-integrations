@@ -40,7 +40,7 @@ const jsonata_response_transform_file_name = process.env.JSONATA_RESPONSE_TRANSF
 
 const jsonata_discard_response_body = process.env.JSONATA_DISCARD_RESPONSE_BODY === "true" || false;
 
-const jsonata_config_tracing = JSON.parse(process.env.JSONATA_CONFIG_TRACING || '{}')
+const jsonata_config_tracing = JSON.parse(process.env.K_TRACING_CONFIG || '{}')
 
 const oidc_token_file = process.env.OIDC_TOKEN_FILE || undefined
 if (oidc_token_file && !fs.existsSync(oidc_token_file)) {

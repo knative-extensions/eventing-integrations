@@ -1,4 +1,6 @@
-FROM registry.access.redhat.com/ubi9/nodejs-20 AS builder
+FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/nodejs-20 AS builder
+
+ARG TARGETPLATFORM
 
 # Set working directory
 WORKDIR /app
@@ -22,7 +24,7 @@ COPY . .
 RUN pnpm build || echo "No build step found, skipping"
 
 # Use a minimal base image for runtime
-FROM registry.access.redhat.com/ubi9/nodejs-20
+FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/nodejs-20
 
 ENV NODE_ENV=production
 
