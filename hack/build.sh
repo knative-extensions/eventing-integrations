@@ -16,8 +16,6 @@ set -o pipefail # exit on pipe failure
 
 trap 'err_report $LINENO' ERR
 
-export KO_DOCKER_REPO="${KO_DOCKER_REPO:-kind.local}"
-
 build_transform_jsonata_image || exit $?
 
 build_integration_images || exit $?

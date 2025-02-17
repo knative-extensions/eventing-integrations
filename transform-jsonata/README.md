@@ -15,9 +15,9 @@ broker <- trigger <- (response) <-
 Assuming current working directory is `transform-jsonata`
 
 ```shell
-pnpm dev
+npm dev
 
-# or pnpm dev-kubevirt to inject a different example transformation
+# or npm dev-kubevirt to inject a different example transformation
 ```
 
 ### Tracing
@@ -25,7 +25,7 @@ pnpm dev
 ```shell
 docker run --rm -d -p 9411:9411 openzipkin/zipkin
 
-pnpm dev-zipkin
+npm dev-zipkin
 ```
 
 ## Building

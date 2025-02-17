@@ -1,41 +1,32 @@
-FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/nodejs-20 AS builder
-
-ARG TARGETPLATFORM
+FROM registry.access.redhat.com/ubi9/nodejs-20 AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Switch to non-root user
+# Copy package.json and package-lock.json before installing dependencies
+# Ensure correct permissions by using --chown flag
+COPY --chown=1001:0 package.json package-lock.json ./
+
+# Install dependencies as non-root user
 USER 1001
-
-# Install pnpm globally
-RUN npm install -g pnpm
-
-# Copy package.json and pnpm-lock.yaml before installing dependencies
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies using pnpm
-RUN pnpm install --frozen-lockfile
+RUN npm install --frozen-lockfile
 
 # Copy the rest of the application files
-COPY . .
-
-# Build the application (if necessary)
-RUN pnpm build || echo "No build step found, skipping"
+COPY --chown=1001:0 . .
 
 # Use a minimal base image for runtime
-FROM --platform=$TARGETPLATFORM registry.access.redhat.com/ubi9/nodejs-20
-
-ENV NODE_ENV=production
+FROM registry.access.redhat.com/ubi9/nodejs-20
 
 # Set working directory
 WORKDIR /app
 
+# Copy built files and dependencies
+COPY --from=builder --chown=1001:0 /app /app
+
 # Switch to non-root user
 USER 1001
 
-# Copy built files and dependencies
-COPY --from=builder /app /app
+ENV NODE_ENV=production
 
 # Expose the application port
 EXPOSE 8080
