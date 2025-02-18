@@ -14,21 +14,28 @@ export TRANSFORM_JSONATA_DIR="${REPO_ROOT_DIR}/transform-jsonata"
 
 function build_transform_jsonata_image() {
 
-  download_pack_cli || return $?
+  docker info
+  docker buildx ls
 
-  cd "${TRANSFORM_JSONATA_DIR}" && \
-    pack build "${TRANSFORM_JSONATA_IMAGE_WITH_TAG}-arm64" \
-      --builder docker.io/heroku/builder:24 \
-      --platform "linux/arm64" \
-      --clear-cache && \
-    cd -
+  echo "Building image for arm64"
+  docker buildx build \
+    --debug \
+    --pull \
+    -t "${TRANSFORM_JSONATA_IMAGE_WITH_TAG}-arm64" \
+    -f "${REPO_ROOT_DIR}/transform-jsonata/Dockerfile" \
+    --platform "linux/arm64" \
+    "${REPO_ROOT_DIR}/transform-jsonata" \
+    || return $?
 
-  cd "${TRANSFORM_JSONATA_DIR}" && \
-    pack build "${TRANSFORM_JSONATA_IMAGE_WITH_TAG}-amd64" \
-      --builder docker.io/heroku/builder:24 \
-      --platform "linux/amd64" \
-      --clear-cache && \
-    cd -
+  echo "Building image for amd64"
+  docker buildx build \
+    --debug \
+    --pull \
+    -t "${TRANSFORM_JSONATA_IMAGE_WITH_TAG}-amd64" \
+    -f "${REPO_ROOT_DIR}/transform-jsonata/Dockerfile" \
+    --platform "linux/amd64" \
+    "${REPO_ROOT_DIR}/transform-jsonata" \
+    || return $?
 }
 
 function push_transform_jsonata_image() {
@@ -52,12 +59,4 @@ function push_transform_jsonata_image() {
 
 function build_integration_images() {
   "${REPO_ROOT_DIR}/mvnw" clean package -P knative -DskipTests || return $?
-}
-
-function download_pack_cli() {
-  local dir
-  dir="$(mktemp -d)"
-  git clone --depth 1 --branch "v0.36.4" https://github.com/buildpacks/pack.git "${dir}"
-  cd "${dir}" && go install ./cmd/pack && cd - || return $?
-  rm -rf "${dir}"
 }
