@@ -4,15 +4,19 @@ set -euo pipefail
 
 export TAG=${TAG:-$(git rev-parse HEAD)}
 
-export KO_DOCKER_REPO="${KO_DOCKER_REPO:-kind.local}"
-export TRANSFORM_JSONATA_IMAGE_WITH_TAG="${KO_DOCKER_REPO}/transform-jsonata:${TAG}"
+export TRANSFORM_JSONATA_IMAGE_WITH_TAG="${KO_DOCKER_REPO:-kind.local}/transform-jsonata:${TAG}"
 
 [[ ! -v REPO_ROOT_DIR ]] && REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
 readonly REPO_ROOT_DIR
 
 export TRANSFORM_JSONATA_DIR="${REPO_ROOT_DIR}/transform-jsonata"
 
+
 function build_transform_jsonata_image() {
+
+  if (( ${IS_PROW:-0} )); then
+    docker run --privileged --rm tonistiigi/binfmt --install all binfmt
+  fi
 
   docker info
   docker buildx ls

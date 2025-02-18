@@ -18,4 +18,5 @@ trap 'err_report $LINENO' ERR
 
 build_transform_jsonata_image || exit $?
 
-build_integration_images || exit $?
+# TODO: To enable the builds in build-tests we need to disable the "push"
+# build_integration_images || exit $?
