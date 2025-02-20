@@ -9,4 +9,4 @@ function build_tests() {
   ./hack/build.sh || fail_test "build tests failed"
 }
 
-main $@
+main --build-tests "$@"
