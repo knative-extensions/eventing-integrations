@@ -9,4 +9,9 @@ function build_tests() {
   ./hack/build.sh || fail_test "build tests failed"
 }
 
+function unit_tests() {
+  header "Running unit tests"
+  # ... nothing to do for now
+}
+
 main $@
