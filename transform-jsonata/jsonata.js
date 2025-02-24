@@ -321,11 +321,8 @@ app.post("/", async (req, res) => {
         try {
             const response_headers = {}
             response.headers.forEach((value, key) => {
-                if (key in response_headers) {
-                    response_headers[key].push(value)
-                    return
-                }
-                response_headers[key] = [value]
+                // Technically headers can have multiple values, however the JS SDK doesn't handle that case.
+                response_headers[key] = value
             })
             const ce_input = HTTP.toEvent({headers: response_headers, body: response_buf});
             input = JSON.parse(HTTP.structured(ce_input).body)
@@ -333,6 +330,7 @@ app.post("/", async (req, res) => {
             const body = response_buf.toString('utf-8')
             try {
                 input = JSON.parse(body)
+                logDebug(`Response is not a CloudEvent, falling back to raw JSON parsing`, JSON.stringify(input, null, 2), error)
             } catch (error) {
                 input = body
             }
