@@ -2,6 +2,8 @@ const express = require('express');
 const {HTTP} = require("cloudevents");
 const jsonata = require('jsonata');
 const fs = require('node:fs');
+const http = require('http');
+const https = require('https');
 const fsPromises = require('node:fs').promises;
 const {buffer} = require('node:stream/consumers');
 
@@ -31,9 +33,17 @@ const {ZipkinExporter} = require('@opentelemetry/exporter-zipkin');
 const {W3CTraceContextPropagator, CompositePropagator} = require("@opentelemetry/core");
 const {B3InjectEncoding, B3Propagator} = require("@opentelemetry/propagator-b3");
 
-const port = process.env.PORT = process.env.PORT || 8080;
+const httpPort = process.env.HTTP_PORT || 8080;
+const httpsPort = process.env.HTTPS_PORT || 8443;
+const httpsCertPath = process.env.HTTPS_CERT_PATH;
+const httpsKeyPath = process.env.HTTPS_KEY_PATH;
+const disableHTTPServer = process.env.DISABLE_HTTP_SERVER === 'true';
 const k_sink = process.env.K_SINK || undefined;
 const jsonata_transform_file_name = process.env.JSONATA_TRANSFORM_FILE_NAME || undefined;
+
+if (disableHTTPServer && (!httpsKeyPath || !fs.existsSync(httpsKeyPath) || !httpsCertPath || !fs.existsSync(httpsCertPath))) {
+   throw new Error(`HTTP and HTTPS server are both disabled, disableHTTPServer='${disableHTTPServer}', httpsKeyPath='${httpsKeyPath}', httpsCertPath=${httpsCertPath}`);
+}
 
 // Allow transforming the response received by the endpoint defined by K_SINK
 const jsonata_response_transform_file_name = process.env.JSONATA_RESPONSE_TRANSFORM_FILE_NAME || undefined;
@@ -250,7 +260,7 @@ app.post("/", async (req, res) => {
         const k_sink_url = new URL(k_sink)
         const kSinkSendSpan = tracer.startSpan('k_sink_send', {
             attributes: {
-                [ATTR_URL_SCHEME]: k_sink_url.protocol.endsWith(':') ? k_sink_url.protocol.substring(0, k_sink_url.protocol.length-1) : k_sink_url.protocol,
+                [ATTR_URL_SCHEME]: k_sink_url.protocol.endsWith(':') ? k_sink_url.protocol.substring(0, k_sink_url.protocol.length - 1) : k_sink_url.protocol,
                 [ATTR_SERVER_ADDRESS]: k_sink_url.hostname,
                 [ATTR_SERVER_PORT]: k_sink_url.port,
             }
@@ -267,6 +277,7 @@ app.post("/", async (req, res) => {
                         headers: k_sink_request_headers,
                         body: JSON.stringify(transformed),
                         redirect: 'error',
+                        signal: req.signal,
                     })
                     kSinkSendSpan.setAttributes({
                         'http.status_code': result.status,
@@ -384,19 +395,71 @@ app.get('/readyz', (req, res) => {
 
 app.disable('x-powered-by');
 
-const server = app.listen(port, () => {
-    console.log(`Jsonata server listening on port ${port}`)
-})
+let httpServer = null
+let httpsServer = null
+
+if (!disableHTTPServer) {
+    httpServer = http.createServer(app)
+        .listen(httpPort, () => {
+            console.log(`Jsonata HTTP server listening on port ${httpPort}`)
+        })
+}
+
+if (httpsCertPath && httpsKeyPath) {
+    const httpsServerOptions = {
+        cert: fs.readFileSync(httpsCertPath),
+        key: fs.readFileSync(httpsKeyPath),
+
+        // TLS Versions
+        minVersion: 'TLSv1.2', // Minimum TLS version (avoid older, less secure protocols)
+        maxVersion: 'TLSv1.3', // Maximum TLS version
+
+        // Cipher Suites
+        ciphers: [
+            'ECDHE-ECDSA-AES128-GCM-SHA256',
+            'ECDHE-RSA-AES128-GCM-SHA256',
+            'ECDHE-ECDSA-AES256-GCM-SHA384',
+            'ECDHE-RSA-AES256-GCM-SHA384',
+            'ECDHE-ECDSA-CHACHA20-POLY1305',
+            'ECDHE-RSA-CHACHA20-POLY1305',
+            'DHE-RSA-AES128-GCM-SHA256',
+            'DHE-RSA-AES256-GCM-SHA384'
+        ].join(':'),
+
+        // Attempt to use server cipher suite preference instead of clients
+        honorCipherOrder: true,
+
+        // Additional security options
+        secureOptions:
+            require('constants').SSL_OP_NO_TLSv1 |
+            require('constants').SSL_OP_NO_TLSv1_1 |
+            require('constants').SSL_OP_NO_COMPRESSION,
+    }
+
+    httpsServer = https.createServer(httpsServerOptions, app)
+        .listen(httpsPort, () => {
+            console.log(`Jsonata HTTPS server listening on port ${httpsPort}`)
+        })
+}
 
 process.on('SIGINT', shutDown);
 process.on('SIGTERM', shutDownNow);
 
 let connections = [];
 
-server.on('connection', connection => {
-    connections.push(connection);
-    connection.on('close', () => connections = connections.filter(curr => curr !== connection));
-});
+if (httpServer) {
+    httpServer.on('connection', connection => {
+        connections.push(connection);
+        connection.on('close', () => connections = connections.filter(curr => curr !== connection));
+    });
+}
+
+if (httpsServer) {
+    httpsServer.on('connection', connection => {
+        connections.push(connection);
+        connection.on('close', () => connections = connections.filter(curr => curr !== connection));
+    });
+}
 
 function shutDown() {
     console.log('Received interrupt signal, shutting down gracefully');
@@ -413,14 +476,30 @@ function shutDown() {
 function shutDownNow() {
     console.log('Shutting down gracefully');
 
-    server.close(() => {
-        console.log('Closed out remaining connections');
+    const closePromises = []
+    if (httpServer) {
+        closePromises.push(new Promise((resolve, _) => {
+            httpServer.close(() => {
+                console.log('Closed out remaining HTTP connections');
+                resolve()
+            });
+        }))
+    }
+    if (httpsServer) {
+        closePromises.push(new Promise((resolve, _) => {
+            httpsServer.close(() => {
+                console.log('Closed out remaining HTTPS connections');
+                resolve()
+            });
+        }))
+    }
 
+    Promise.all(closePromises).then(() => {
         console.log('Shutting down tracing...');
         batchSpanProcessor.shutdown().then(() => {
             process.exit(0);
         });
-    });
+    })
 
     setTimeout(() => {
         console.error('Could not close connections in time, forcefully shutting down');

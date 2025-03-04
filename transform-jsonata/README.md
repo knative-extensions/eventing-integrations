@@ -15,9 +15,12 @@ broker <- trigger <- (response) <-
 Assuming current working directory is `transform-jsonata`
 
 ```shell
-npm dev
+npm run dev
 
-# or npm dev-kubevirt to inject a different example transformation
+npm run dev-kubevirt # to inject a different example transformation
+
+npm run dev-tls      # to start the HTTP and HTTPS Servers
+npm run dev-tls-only # to start the HTTPS Server only
 ```
 
 ### Tracing
