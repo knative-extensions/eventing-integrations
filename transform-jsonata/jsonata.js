@@ -371,7 +371,7 @@ app.post("/", async (req, res) => {
 });
 
 // guessTransformedContentType tries to guess the transformed event content type.
-// 1. If the transformed event contains a special "contentype" field, it returns it.
+// 1. If the transformed event contains a special "contenttype" field, it returns it.
 // 2. Otherwise, it tries to find CloudEvents "specversion" attribute and, if it's present, returns
 // the CloudEvent structured content type "application/cloudevents+json".
 // 3. Lastly, it falls back to "application/json" if none of the above are specified.
