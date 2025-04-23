@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-export TAG=${TAG:-$(git rev-parse HEAD)}
+export JSONATA_IMAGE_TAG=${TAG:-$(git rev-parse HEAD)}
 
-export TRANSFORM_JSONATA_IMAGE_WITH_TAG="${KO_DOCKER_REPO:-kind.local}/transform-jsonata:${TAG}"
+export TRANSFORM_JSONATA_IMAGE_WITH_TAG="${KO_DOCKER_REPO:-kind.local}/transform-jsonata:${JSONATA_IMAGE_TAG}"
 
 [[ ! -v REPO_ROOT_DIR ]] && REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
 readonly REPO_ROOT_DIR
