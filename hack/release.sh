@@ -16,7 +16,6 @@
 
 # shellcheck disable=SC1090
 source "$(go run knative.dev/hack/cmd/script release.sh)"
-source "$(dirname $0)/common.sh"
 
 INTEGRATION_CONFIGMAP_YAML="eventing-integrations-images.yaml"
 TRANSFORMATION_CONFIGMAP_YAML="eventing-transformations-images.yaml"
@@ -26,6 +25,7 @@ function build_release() {
   header "Building images"
 
   # KO_DOCKER_REPO and TAG are calculated in release.sh script
+  source "$(dirname $0)/common.sh"
 
   build_integration_images || return $?
 
