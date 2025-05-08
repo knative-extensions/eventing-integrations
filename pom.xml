@@ -17,10 +17,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <camel.version>4.9.0</camel.version>
-        <citrus.version>4.5.1</citrus.version>
+        <camel.version>4.11.0</camel.version>
+        <camel.quarkus.platform.version>3.22.0</camel.quarkus.platform.version>
+        <citrus.version>4.6.0</citrus.version>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.17.0</quarkus.platform.version>
+        <quarkus.platform.version>3.22.3</quarkus.platform.version>
         <quarkus.kubernetes-client.generate-rbac>false</quarkus.kubernetes-client.generate-rbac>
         <quarkus.container-image.insecure>true</quarkus.container-image.insecure>
         <quarkus.container-image.registry>localhost:5001</quarkus.container-image.registry>
@@ -59,7 +60,7 @@
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-bom</artifactId>
-                <version>${quarkus.platform.version}</version>
+                <version>${camel.quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
