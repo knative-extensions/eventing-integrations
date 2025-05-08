@@ -56,6 +56,7 @@ public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackCo
     public HttpServer knativeBroker = HttpEndpoints.http()
             .server()
             .port(8080)
+            .timeout(5000L)
             .autoStart(true)
             .build();
 

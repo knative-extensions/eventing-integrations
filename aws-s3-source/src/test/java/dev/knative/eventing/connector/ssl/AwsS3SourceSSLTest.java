@@ -64,6 +64,7 @@ public class AwsS3SourceSSLTest implements ContainerLifecycleListener<LocalStack
     public HttpServer knativeBroker = HttpEndpoints.http()
             .server()
             .port(8080)
+            .timeout(5000L)
             .securePort(8443)
             .secured(HttpSecureConnection.ssl()
                     .keyStore("classpath:keystore/server.jks", "secr3t")

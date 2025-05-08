@@ -47,6 +47,7 @@ public class TimerSourceOIDCTest implements ApplicationPropertiesSupplier {
     public HttpServer knativeBroker = HttpEndpoints.http()
             .server()
             .port(8088)
+            .timeout(5000L)
             .autoStart(true)
             .build();
 
