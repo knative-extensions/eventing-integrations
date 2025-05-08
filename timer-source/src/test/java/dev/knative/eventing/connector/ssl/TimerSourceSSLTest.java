@@ -45,6 +45,7 @@ public class TimerSourceSSLTest implements ApplicationPropertiesSupplier {
             .server()
             .port(8080)
             .securePort(8443)
+            .timeout(5000L)
             .secured(HttpSecureConnection.ssl()
                     .keyStore("classpath:keystore/server.jks", "secr3t")
                     .trustStore("classpath:keystore/truststore.jks", "secr3t"))

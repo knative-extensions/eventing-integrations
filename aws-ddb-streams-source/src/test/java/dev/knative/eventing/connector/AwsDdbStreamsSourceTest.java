@@ -63,6 +63,7 @@ public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<Local
     public HttpServer knativeBroker = HttpEndpoints.http()
             .server()
             .port(8080)
+            .timeout(5000L)
             .autoStart(true)
             .build();
 
