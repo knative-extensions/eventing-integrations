@@ -26,6 +26,7 @@
         <quarkus.container-image.insecure>true</quarkus.container-image.insecure>
         <quarkus.container-image.registry>localhost:5001</quarkus.container-image.registry>
         <quarkus.container-image.group>openshift-knative</quarkus.container-image.group>
+        <quarkiverse.amazonservices.version>3.9.1</quarkiverse.amazonservices.version>
 
         <!-- needed from tooling/archetypes -->
         <maven-version>3.9.9</maven-version>
@@ -97,6 +98,15 @@
                 <artifactId>citrus-validation-json</artifactId>
                 <version>${citrus.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <!-- quarkus test dependencies -->
+            <dependency>
+                <groupId>io.quarkiverse.amazonservices</groupId>
+                <artifactId>quarkus-amazon-services-bom</artifactId>
+                <version>${quarkiverse.amazonservices.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,0 +1,10 @@
+aws iam create-user --user-name eventing-integrations-tests
+
+# s3 sink
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+# list all policies
+aws iam list-user-policies --user-name eventing-integrations-tests
+
+# create access key
+aws iam create-access-key --user-name eventing-integrations-tests
