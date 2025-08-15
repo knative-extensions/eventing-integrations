@@ -11,7 +11,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <compiler-plugin.version>3.13.0</compiler-plugin.version>
+        <compiler-plugin.version>3.14.0</compiler-plugin.version>
         <failsafe.useModulePath>false</failsafe.useModulePath>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,10 +29,10 @@
 
         <!-- needed from tooling/archetypes -->
         <maven-version>3.9.9</maven-version>
-        <maven-archetype-plugin-version>3.2.1</maven-archetype-plugin-version>
-        <maven-archetype-packaging-version>3.2.1</maven-archetype-packaging-version>
+        <maven-archetype-plugin-version>3.4.0</maven-archetype-plugin-version>
+        <maven-archetype-packaging-version>3.4.0</maven-archetype-packaging-version>
 
-        <surefire-plugin.version>3.1.2</surefire-plugin.version>
+        <surefire-plugin.version>3.5.3</surefire-plugin.version>
         <skipITs>true</skipITs>
     </properties>
 
