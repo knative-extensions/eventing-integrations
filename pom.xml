@@ -45,6 +45,7 @@
         <module>aws-s3-sink</module>
         <module>aws-sns-sink</module>
         <module>aws-sqs-sink</module>
+        <module>aws-eventbridge-sink</module>
         <module>log-sink</module>
     </modules>
 
