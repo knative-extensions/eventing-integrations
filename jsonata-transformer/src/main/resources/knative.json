@@ -1,0 +1,23 @@
+{
+  "resources": [
+    {
+      "name": "default",
+      "type": "event",
+      "endpointKind": "source",
+      "path": "/",
+      "objectApiVersion": "eventing.knative.dev/v1",
+      "objectKind": "Broker",
+      "objectName": "default",
+      "reply": false
+    },
+    {
+      "name": "broker-sink",
+      "type": "event",
+      "endpointKind": "sink",
+      "url": "{{k.sink:http://localhost:8080}}",
+      "objectApiVersion": "eventing.knative.dev/v1",
+      "objectKind": "Broker",
+      "objectName": "broker-sink"
+    }
+  ]
+}

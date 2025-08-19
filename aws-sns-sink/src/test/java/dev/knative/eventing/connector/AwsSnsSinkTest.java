@@ -76,7 +76,7 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
                     .post("/")
                     .message()
                     .body(snsData)
-                    .header("ce-id", "@matches([0-9A-Z]{15}-[0-9]{16})@")
+                    .header("ce-id", "citrus:randomPattern([0-9A-Z]{15}-[0-9]{16})")
                     .header("ce-type", "dev.knative.eventing.aws.sns")
                     .header("ce-source", "dev.knative.eventing.aws-sns-source")
                     .header("ce-subject", "aws-sns-source")

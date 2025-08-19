@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    eventing.knative.dev/connector: jsonata-transformer
+  name: jsonata-transformer
+spec:
+  selector:
+    matchLabels:
+      eventing.knative.dev/connector: jsonata-transformer
+  template:
+    metadata:
+      labels:
+        eventing.knative.dev/connector: jsonata-transformer
+    spec:
+      containers:
+        - name: jsonata-transformer
+          env:
+            - name: CAMEL_KAMELET_JSONATA_ACTION_TEMPLATE
+              value: "file://///var/data/ce_apiserversource_kubevirt"
+---
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  annotations:
+    sources.knative.dev/creator: connectors.knative.dev
+  finalizers:
+    - sinkbindings.sources.knative.dev
+  labels:
+    eventing.knative.dev/connector: jsonata-transformer
+  name: jsonata-transformer
+spec:
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+  subject:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: jsonata-transformer
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  annotations:
+    eventing.knative.dev/creator: kn-connectors
+  labels:
+    eventing.knative.dev/connector: jsonata-transformer
+    eventing.knative.dev/broker: default
+  name: jsonata-transformer
+spec:
+  broker: default
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: jsonata-transformer

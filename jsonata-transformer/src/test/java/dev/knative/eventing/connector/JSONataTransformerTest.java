@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package dev.knative.eventing.connector.ssl;
-
-import java.util.HashMap;
-import java.util.Map;
+package dev.knative.eventing.connector;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.http.client.HttpClient;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
-import org.citrusframework.http.security.HttpSecureConnection;
-import org.citrusframework.quarkus.ApplicationPropertiesSupplier;
+import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
+import org.citrusframework.spi.Resources;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
-@CitrusSupport(applicationPropertiesSupplier = LogSinkSSLTest.class)
-public class LogSinkSSLTest implements ApplicationPropertiesSupplier {
+@CitrusSupport
+public class JSONataTransformerTest {
 
     @CitrusResource
     private TestCaseRunner tc;
@@ -43,38 +40,53 @@ public class LogSinkSSLTest implements ApplicationPropertiesSupplier {
     @BindToRegistry
     public HttpClient knativeTrigger = HttpEndpoints.http()
                 .client()
-                .requestUrl("https://localhost:8444")
-                .secured(HttpSecureConnection.ssl()
-                        .keyStore("classpath:keystore/server.jks", "changeit")
-                        .trustStore("classpath:keystore/truststore.jks", "changeit"))
+                .requestUrl("http://localhost:8081")
                 .build();
 
+    @BindToRegistry
+    public HttpServer knativeBroker = HttpEndpoints.http()
+            .server()
+            .port(12345)
+            .timeout(5000L)
+            .autoStart(true)
+            .build();
+
     @Test
-    public void shouldConsumeEvents() {
+    public void shouldTransformEvents() {
+        tc.variable("ce-id", "citrus:randomUUID()");
+
         tc.when(
             http().client(knativeTrigger)
                     .send()
                     .post("/")
+                    .fork(true)
                     .message()
-                    .body("Secure timer source event!")
-                    .header("ce-id", "citrus:randomPattern([0-9A-Z]{15}-[0-9]{16})")
-                    .header("ce-type", "dev.knative.eventing.timer")
-                    .header("ce-source", "dev.knative.eventing.timer-source")
-                    .header("ce-subject", "secure-timer-source")
+                    .body(Resources.fromClasspath("ce_apiserversource_kubevirt.json"))
         );
 
         tc.then(
+            http().server(knativeBroker)
+                    .receive()
+                    .post()
+                    .message()
+                    .body(Resources.fromClasspath("ce_apiserversource_kubevirt_transformed.json"))
+                    .header("ce-id", "@ignore@")
+                    .header("ce-type", "dev.knative.eventing.transformer")
+                    .header("ce-source", "dev.knative.eventing.jsonata-transformer")
+                    .header("ce-subject", "jsonata-transformer")
+        );
+
+        tc.and(
+            http().server(knativeBroker)
+                    .send()
+                    .response(HttpStatus.OK)
+        );
+
+        tc.and(
             http().client(knativeTrigger)
                     .receive()
                     .response(HttpStatus.NO_CONTENT)
         );
     }
 
-    @Override
-    public Map<String, String> get() {
-        Map<String, String> conf = new HashMap<>();
-        conf.put("quarkus.http.ssl.certificate.files", "keystore/server.crt");
-        conf.put("quarkus.http.ssl.certificate.key-files", "keystore/server.key");
-        return conf;
-    }
 }

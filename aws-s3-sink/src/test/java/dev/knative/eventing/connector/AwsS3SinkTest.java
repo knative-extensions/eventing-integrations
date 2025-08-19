@@ -71,7 +71,7 @@ public class AwsS3SinkTest implements ContainerLifecycleListener<LocalStackConta
                     .post("/")
                     .message()
                     .body(s3Data)
-                    .header("ce-id", "@matches([0-9A-Z]{15}-[0-9]{16})@")
+                    .header("ce-id", "citrus:randomPattern([0-9A-Z]{15}-[0-9]{16})")
                     .header("ce-type", "dev.knative.eventing.aws.s3")
                     .header("ce-source", "dev.knative.eventing.aws-s3-source")
                     .header("ce-subject", "aws-s3-source")

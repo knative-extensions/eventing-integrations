@@ -1,0 +1,9 @@
+|===
+|Property |Required |EnvVar |Description
+
+|template
+|yes
+|CAMEL_KAMELET_JSONATA_ACTION_TEMPLATE=<the_template>
+|The inline template.
+
+|===

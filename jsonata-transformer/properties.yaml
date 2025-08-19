@@ -1,0 +1,12 @@
+spec:
+  type: object
+  properties:
+    jsonata:
+      type: object
+      properties:
+        template:
+          title: Template
+          description: The inline template.
+          type: string
+          example: "file:////template.jsonata"
+          pattern: "^(http|https|file|classpath|ref|bean)://.*"

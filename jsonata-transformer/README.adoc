@@ -1,0 +1,186 @@
+= Knative transformer jsonata
+
+Knative eventing transformer based on https://camel.apache.org/camel-kamelets/[Apache Camel Kamelets].
+The transformer project creates a container image that is pushed into a registry so the image can be referenced in a Kubernetes deployment.
+
+== Kamelet properties
+
+The transformer image provides these properties that you can set (e.g. via environment properties on the deployment).
+
+.Kamelet properties
+include::properties.adoc[]
+
+== Kubernetes manifest
+
+The build produces a Kubernetes manifest in (`target/kubernetes/kubernetes.yml`).
+This manifest holds all resources required to run the application on your Kubernetes cluster.
+
+You can customize the Kubernetes resources in link:src/main/kubernetes/kubernetes.yml[src/main/kubernetes/kubernetes.yml].
+This is being used as a basis and Quarkus will generate the final manifest in `target/kubernetes/kubernetes.yml` during the build.
+
+The final Kubernetes manifest includes:
+
+* Service
+* Deployment
+* SinkBinding
+
+== Kamelet transformer Pipe
+
+The transformer consumes an event, transforms the event and produces the updated event for the Knative broker.
+It uses an Apache Camel Pipe resource as the central piece of code to define how the Knative events are produced.
+
+The Pipe is a YAML file located in link:src/main/resources/camel/transform.yaml[src/main/resources/camel/transform.yaml]
+
+.transform.yaml
+[source,yaml]
+----
+apiVersion: camel.apache.org/v1
+kind: Pipe
+metadata:
+  name: jsonata-transformer
+spec:
+  source:
+    ref:
+      kind: Broker
+      apiVersion: eventing.knative.dev/v1
+      name: default
+    properties:
+      type: ""
+  steps:
+    - ref:
+        kind: Kamelet
+        apiVersion: camel.apache.org/v1
+        name: json-deserialize-action
+    - ref:
+        kind: Kamelet
+        apiVersion: camel.apache.org/v1
+        name: jsonata-action
+  sink:
+    ref:
+      kind: Kamelet
+      apiVersion: camel.apache.org/v1
+      name: log-sink
+----
+
+This transformer uses the https://camel.apache.org/camel-kamelets/jsonata-action.html[jsonata-action] Kamelet that updates events for the Knative broker.
+
+The Pipe references the Kamelet as a source and connects to the Knative broker as a sink.
+
+The name of the broker is always `default` because the actual broker URL is injected into the application via `SinkBinding` resource.
+The SinkBinding injects a `K_SINK` environment variable to the deployment and the application uses the injected broker URL to send events to it.
+
+This way the same container image can be used with different brokers.
+It is only a matter of configuring the SinkBinding resource that connects the application with the Knative broker.
+
+You can find a sample SinkBinding in link:src/main/kubernetes/kubernetes.yml[src/main/kubernetes/kubernetes.yml]
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: SinkBinding
+metadata:
+  annotations:
+    sources.knative.dev/creator: connectors.knative.dev
+  finalizers:
+    - sinkbindings.sources.knative.dev
+  labels:
+    eventing.knative.dev/connector: jsonata-transformer
+  name: jsonata-transformer
+spec:
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+  subject:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: jsonata-transformer
+----
+
+== Configuration
+
+Each Kamelet defines a set of properties.
+The user is able to customize these properties when running a connector deployment.
+
+=== Environment variables
+
+You can customize the properties via environment variables on the deployment:
+
+.Environment variables
+include::properties.adoc[]
+
+The environment variables that overwrite properties on the Kamelet source follow a naming convention:
+
+* CAMEL_KAMELET_{{KAMELET_NAME}}_{{PROPERTY_NAME}}={{PROPERTY_VALUE}}
+
+The name represents the name of the Kamelet as defined in the https://camel.apache.org/camel-kamelets/[Kamelet catalog].
+
+The environment variables may be set as part of the Kubernetes deployment or as an alternative on the Knative ContainerSource:
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: kamelet-source
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/openshift-knative/jsonata-transformer:1.0
+          name: jsonata-transformer
+          env:
+            - name: CAMEL_KAMELET_JSONATA_ACTION_TEMPLATE
+              value: file://///var/examples/ce_apiserversource_kubevirt.jsonata"
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+----
+
+You can also set the environment variable on the running deployment:
+
+[source,shell]
+----
+kubectl set env deployment/{{transformer-name}} CAMEL_KAMELET_JSONATA_ACTION_TEMPLATE="I updated it..."
+----
+
+=== ConfigMap and Secret
+
+You may also mount a configmap/secret to overwrite Kamelet properties with values from the configmap/secret resource.
+
+As the Kamelet properties are configured viw environment variables on the ContainerSource you can also use values referencing a configmap or secret.
+
+[source,yaml]
+----
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: kamelet-source
+  namespace: knative-samples
+spec:
+  template:
+    spec:
+      containers:
+        - image: quay.io/openshift-knative/jsonata-transformer:1.0
+          name: jsonata-transformer
+          env:
+            - name: CAMEL_KAMELET_JSONATA_ACTION_TEMPLATE
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: jsonata.template
+  sink:
+    ref:
+      apiVersion: eventing.knative.dev/v1
+      kind: Broker
+      name: default
+----
+
+The example above references a secret called `my-secret` and loads the keys `jsonata.template`.
+
+== More configuration options
+
+For more information about Apache Camel Kamelets and their individual properties see https://camel.apache.org/camel-kamelets/.
