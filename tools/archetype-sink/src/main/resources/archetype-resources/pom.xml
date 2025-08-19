@@ -107,23 +107,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>dev.knative.eventing</groupId>
-        <artifactId>connector-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <configuration>
-          <kameletName>${kamelet-name}-sink</kameletName>
-        </configuration>
-        <executions>
-          <execution>
-            <id>generate-connector-spec</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
       </plugin>
@@ -141,4 +124,31 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>generate-spec</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>dev.knative.eventing</groupId>
+            <artifactId>connector-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <configuration>
+              <kameletName>${kamelet-name}-sink</kameletName>
+            </configuration>
+            <executions>
+              <execution>
+                <id>generate-connector-spec</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

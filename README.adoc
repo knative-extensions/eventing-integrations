@@ -49,6 +49,16 @@ mvn archetype:generate \
  -DoutputDirectory=integration-source
 ----
 
+You may now run a 1st build of the project and generate additional spec documentation for the new eventing integration with:
+
+[source,shell]
+----
+mvn install -Pgenerate-spec
+----
+
+This builds the project and generates some information regarding the available configuration parameters in `properties.adoc`.
+In addition to that `properties.yaml` holds a potential typed spec configuration for the use in a custom resource definition.
+
 Each connector requires a set of Camel Quarkus dependencies in the Maven POM.
 After the 1st build of the new Maven project you can review a generated list of dependencies in `target/metadata/dependencies.json`.
 This generated info gives you a list of dependencies that you should consider adding to the Maven project POM.
