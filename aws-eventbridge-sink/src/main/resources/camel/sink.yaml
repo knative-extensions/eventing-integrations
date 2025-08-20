@@ -31,7 +31,10 @@ spec:
     - ref:
         kind: Kamelet
         apiVersion: camel.apache.org/v1
-        name: log-action
+        name: insert-header-action
+      properties:
+        name: event-source
+        value: "{{camel.kamelet.aws-eventbridge-sink.event.source.prefix}}${header[ce-event-source]}"
   sink:
     ref:
       kind: Kamelet

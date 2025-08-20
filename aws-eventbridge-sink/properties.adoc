@@ -1,6 +1,11 @@
 |===
 |Property |Required |EnvVar |Description
 
+|eventSourcePrefix
+|no
+|CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_EVENT_SOURCE_PREFIX=<the_eventSourcePrefix>
+|The AWS EventBridge source prefix for all events sent to the eventbus. (default is `knative-connect.`)
+
 |eventbusNameOrArn
 |yes
 |CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_EVENTBUS_NAME_OR_ARN=<the_eventbusNameOrArn>

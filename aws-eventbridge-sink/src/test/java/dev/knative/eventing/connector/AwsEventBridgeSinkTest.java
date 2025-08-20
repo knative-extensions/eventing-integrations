@@ -48,7 +48,6 @@ import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
-import static org.citrusframework.actions.SleepAction.Builder.delay;
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
@@ -87,8 +86,8 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                     .header("ce-source", "dev.knative.eventing.aws-eventbridge-source")
                     .header("ce-subject", "aws-eventbridge-source")
                     .header("ce-resources-arn", "arn:aws:s3:us-east-1:000000000000:my-bucket")
-                    .header("ce-detail-type", "knative.event.notification")
-                    .header("ce-event-source", "knative.dev")
+                    .header("ce-detail-type", "Object Created")
+                    .header("ce-event-source", "aws.s3")
         );
 
         tc.when(
@@ -121,8 +120,8 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                 {
                     "version": "0",
                     "id": "@isUUIDv4()@",
-                    "detail-type": "knative.event.notification",
-                    "source": "knative.dev",
+                    "detail-type": "Object Created",
+                    "source": "knative-connect.aws.s3",
                     "account": "000000000000",
                     "time": "@ignore@",
                     "region": "us-east-1",
@@ -142,8 +141,8 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                 .eventBusName(eventBusName)
                 .eventPattern("""
                     {
-                        "source": ["knative.dev"],
-                        "detail-type": ["knative.event.notification"]
+                        "source": ["knative-connect.aws.s3"],
+                        "detail-type": ["Object Created"]
                     }
                     """));
 
