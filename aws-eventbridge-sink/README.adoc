@@ -116,6 +116,38 @@ This results in an EventBridge event that looks like this:
 }
 ----
 
+As an alternative to providing this via CloudEvent attributes you can use EnvVar settings to set some default values.
+
+|===
+|Property |Required |EnvVar |Description
+
+|eventbusNameOrArn
+|yes
+|CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_EVENTBUS_NAME_OR_ARN=<the_eventbusNameOrArn>
+|The Eventbridge Eventbus name or Amazon Resource Name (ARN).
+
+|resourcesArn
+|no
+|CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_RESOURCES_ARN=<the_resourcesArn>
+|The ARN of resources related to the AWS event (e.g. `arn:aws:s3:eu-east-1:000000000001:test`).
+
+|eventSourcePrefix
+|no
+|CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_EVENT_SOURCE_PREFIX=<the_eventSourcePrefix>
+|The event source prefix set for all events sent to the eventbus. (default is `knative-connect.`)
+
+|eventSource
+|no
+|CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_EVENT_SOURCE=<the_eventSource>
+|The event source related to the AWS event (e.g. `aws.s3`).
+
+|detailType
+|no
+|CAMEL_KAMELET_AWS_EVENTBRIDGE_SINK_DETAIL_TYPE=<the_detailType>
+|The event detail type related to the AWS event (e.g. `Object Created`).
+
+|===
+
 == Configuration
 
 Each Kamelet defines a set of properties.

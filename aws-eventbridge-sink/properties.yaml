@@ -11,6 +11,22 @@ spec:
               type: string
               title: Eventbus Name
               description: The Eventbridge Eventbus name or Amazon Resource Name (ARN).
+            resourcesArn:
+              title: Resources ARN
+              description: The ARN of resources related to the AWS event (e.g. `arn:aws:s3:eu-east-1:000000000001:test`).
+              type: string
+            eventSourcePrefix:
+              title: Event Source Prefix
+              description: The event source prefix set for all events sent to the eventbus.
+              type: string
+            eventSource:
+              title: Event Source
+              description: The event source related to the AWS event (e.g. `aws.s3`).
+              type: string
+            detailType:
+              title: Detail Type
+              description: The event detail type related to the AWS event (e.g. `Object Created`).
+              type: string
             accessKey:
               type: string
               title: Access Key

@@ -27,16 +27,11 @@ spec:
       name: default
     properties:
       type: ""
-  steps:
-    - ref:
-        kind: Kamelet
-        apiVersion: camel.apache.org/v1
-        name: insert-header-action
-      properties:
-        name: event-source
-        value: "{{camel.kamelet.aws-eventbridge-sink.event.source.prefix}}${header[ce-event-source]}"
   sink:
     ref:
       kind: Kamelet
       apiVersion: camel.apache.org/v1
       name: aws-eventbridge-sink
+    properties:
+      # Default source prefix for all events sent to the event bus
+      eventSourcePrefix: "knative-connect."

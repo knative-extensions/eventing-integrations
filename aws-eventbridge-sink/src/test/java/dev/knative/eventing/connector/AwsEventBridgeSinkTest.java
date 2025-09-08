@@ -85,6 +85,29 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                     .header("ce-type", "dev.knative.eventing.aws.eventbridge")
                     .header("ce-source", "dev.knative.eventing.aws-eventbridge-source")
                     .header("ce-subject", "aws-eventbridge-source")
+        );
+
+        tc.when(
+            http().client(knativeTrigger)
+                    .receive()
+                    .response(HttpStatus.NO_CONTENT)
+        );
+
+        tc.then(this::verifySqsEvent);
+    }
+
+    @Test
+    public void shouldOverwriteCloudEventAttributes() {
+        tc.given(
+            http().client(knativeTrigger)
+                    .send()
+                    .post("/")
+                    .message()
+                    .body(eventData)
+                    .header("ce-id", "citrus:randomPattern([0-9A-Z]{15}-[0-9]{16})@")
+                    .header("ce-type", "dev.knative.eventing.aws.eventbridge")
+                    .header("ce-source", "dev.knative.eventing.aws-eventbridge-source")
+                    .header("ce-subject", "aws-eventbridge-source")
                     .header("ce-resources-arn", "arn:aws:s3:us-east-1:000000000000:my-bucket")
                     .header("ce-detail-type", "Object Created")
                     .header("ce-event-source", "aws.s3")
@@ -188,6 +211,9 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
         conf.put("camel.kamelet.aws-eventbridge-sink.secretKey", container.getSecretKey());
         conf.put("camel.kamelet.aws-eventbridge-sink.region", container.getRegion());
         conf.put("camel.kamelet.aws-eventbridge-sink.eventbusNameOrArn", eventBusName);
+        conf.put("camel.kamelet.aws-eventbridge-sink.resourcesArn", "arn:aws:s3:us-east-1:000000000000:my-bucket");
+        conf.put("camel.kamelet.aws-eventbridge-sink.eventSource", "aws.s3");
+        conf.put("camel.kamelet.aws-eventbridge-sink.detailType", "Object Created");
         conf.put("camel.kamelet.aws-eventbridge-sink.uriEndpointOverride", container.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-eventbridge-sink.overrideEndpoint", "true");
         conf.put("camel.kamelet.aws-eventbridge-sink.forcePathStyle", "true");
