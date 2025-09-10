@@ -23,6 +23,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -44,7 +45,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = LocalStackContainer.Service.S3, containerLifecycleListener = AwsS3SinkTest.class)
+@LocalStackContainerSupport(services = AwsService.S3, containerLifecycleListener = AwsS3SinkTest.class)
 public class AwsS3SinkTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
@@ -87,7 +88,7 @@ public class AwsS3SinkTest implements ContainerLifecycleListener<LocalStackConta
     }
 
     private void verifyS3File(TestContext context) {
-        S3Client s3Client = localStackContainer.getClient(LocalStackContainer.Service.S3);
+        S3Client s3Client = localStackContainer.getClient(AwsService.S3);
 
         ResponseInputStream<GetObjectResponse> getObjectResponse = s3Client.getObject(b -> b.bucket(s3BucketName).key(s3Key));
         try {
@@ -101,7 +102,7 @@ public class AwsS3SinkTest implements ContainerLifecycleListener<LocalStackConta
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        S3Client s3Client = container.getClient(LocalStackContainer.Service.S3);
+        S3Client s3Client = container.getClient(AwsService.S3);
 
         s3Client.createBucket(b -> b.bucket(s3BucketName));
 

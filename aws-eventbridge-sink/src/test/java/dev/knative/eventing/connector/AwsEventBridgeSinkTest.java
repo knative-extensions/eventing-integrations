@@ -22,6 +22,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -52,7 +53,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = { LocalStackContainer.Service.EVENT_BRIDGE, LocalStackContainer.Service.SQS }, containerLifecycleListener = AwsEventBridgeSinkTest.class)
+@LocalStackContainerSupport(services = { AwsService.EVENT_BRIDGE, AwsService.SQS }, containerLifecycleListener = AwsEventBridgeSinkTest.class)
 public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
@@ -123,7 +124,7 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
     }
 
     private void verifySqsEvent(TestContext context) {
-        SqsClient sqsClient = localStackContainer.getClient(LocalStackContainer.Service.SQS);
+        SqsClient sqsClient = localStackContainer.getClient(AwsService.SQS);
 
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
@@ -157,7 +158,7 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        EventBridgeClient eventBridgeClient = container.getClient(LocalStackContainer.Service.EVENT_BRIDGE);
+        EventBridgeClient eventBridgeClient = container.getClient(AwsService.EVENT_BRIDGE);
 
         // Add an EventBridge rule on the event
         PutRuleResponse putRuleResponse = eventBridgeClient.putRule(b -> b.name("events-cdc")
@@ -170,7 +171,7 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                     """));
 
         // Create SQS queue acting as an EventBridge notification endpoint
-        SqsClient sqsClient = container.getClient(LocalStackContainer.Service.SQS);
+        SqsClient sqsClient = container.getClient(AwsService.SQS);
         CreateQueueResponse createQueueResponse = sqsClient.createQueue(b -> b.queueName(sqsQueueName));
 
         // Modify access policy for the queue just created, so EventBridge rule is allowed to send messages

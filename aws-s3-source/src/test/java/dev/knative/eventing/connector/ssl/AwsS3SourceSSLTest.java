@@ -22,6 +22,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
@@ -47,7 +48,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = LocalStackContainer.Service.S3, containerLifecycleListener = AwsS3SourceSSLTest.class)
+@LocalStackContainerSupport(services = AwsService.S3, containerLifecycleListener = AwsS3SourceSSLTest.class)
 public class AwsS3SourceSSLTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource

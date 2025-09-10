@@ -22,6 +22,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -47,7 +48,7 @@ import static org.citrusframework.container.RepeatOnErrorUntilTrue.Builder.repea
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
-@LocalStackContainerSupport(services = { LocalStackContainer.Service.SNS, LocalStackContainer.Service.SQS },
+@LocalStackContainerSupport(services = { AwsService.SNS, AwsService.SQS },
                             containerLifecycleListener = AwsSnsSinkTest.class)
 @CitrusSupport
 public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackContainer> {
@@ -95,7 +96,7 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
     }
 
     private void verifySnsData(TestContext context) {
-        SqsClient sqsClient = localStackContainer.getClient(LocalStackContainer.Service.SQS);
+        SqsClient sqsClient = localStackContainer.getClient(AwsService.SQS);
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
 
@@ -118,12 +119,12 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
     @Override
     public Map<String, String> started(LocalStackContainer container) {
         // Create SQS queue acting as a SNS notification endpoint
-        SqsClient sqsClient = container.getClient(LocalStackContainer.Service.SQS);
+        SqsClient sqsClient = container.getClient(AwsService.SQS);
 
         sqsClient.createQueue(b -> b.queueName(sqsQueueName));
 
         // Create SNS topic
-        SnsClient snsClient = container.getClient(LocalStackContainer.Service.SNS);
+        SnsClient snsClient = container.getClient(AwsService.SNS);
 
         CreateTopicResponse topicResponse = snsClient.createTopic(b -> b.name(snsTopicName));
 

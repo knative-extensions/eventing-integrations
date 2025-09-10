@@ -21,6 +21,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
@@ -48,7 +49,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = LocalStackContainer.Service.DYNAMODB, containerLifecycleListener = AwsDdbStreamsSourceTest.class)
+@LocalStackContainerSupport(services = AwsService.DYNAMODB, containerLifecycleListener = AwsDdbStreamsSourceTest.class)
 public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
@@ -121,7 +122,7 @@ public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<Local
         item.put("year", AttributeValue.builder().n("1977").build());
         item.put("title", AttributeValue.builder().s("Star Wars IV").build());
 
-        DynamoDbClient ddbClient = localStackContainer.getClient(LocalStackContainer.Service.DYNAMODB);
+        DynamoDbClient ddbClient = localStackContainer.getClient(AwsService.DYNAMODB);
         ddbClient.putItem(b -> b.tableName(ddbTableName)
                 .item(item)
                 .returnValues(ReturnValue.ALL_OLD));
@@ -129,7 +130,7 @@ public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<Local
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        DynamoDbClient ddbClient = container.getClient(LocalStackContainer.Service.DYNAMODB);
+        DynamoDbClient ddbClient = container.getClient(AwsService.DYNAMODB);
 
         ddbClient.createTable(b -> {
             b.tableName(ddbTableName);

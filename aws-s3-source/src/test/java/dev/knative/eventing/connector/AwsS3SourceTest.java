@@ -22,6 +22,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
@@ -43,7 +44,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = LocalStackContainer.Service.S3, containerLifecycleListener = AwsS3SourceTest.class)
+@LocalStackContainerSupport(services = AwsService.S3, containerLifecycleListener = AwsS3SourceTest.class)
 public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
@@ -88,7 +89,7 @@ public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackCon
     }
 
     private void uploadS3File(TestContext context) {
-        S3Client s3Client = localStackContainer.getClient(LocalStackContainer.Service.S3);
+        S3Client s3Client = localStackContainer.getClient(AwsService.S3);
 
         CreateMultipartUploadResponse initResponse = s3Client.createMultipartUpload(b -> b.bucket(s3BucketName).key(s3Key));
         String etag = s3Client.uploadPart(b -> b.bucket(s3BucketName)
@@ -107,7 +108,7 @@ public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackCon
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        S3Client s3Client = container.getClient(LocalStackContainer.Service.S3);
+        S3Client s3Client = container.getClient(AwsService.S3);
 
         s3Client.createBucket(b -> b.bucket(s3BucketName));
 

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.citrusframework.TestCaseRunner;
+import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -40,7 +41,7 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = LocalStackContainer.Service.SQS, containerLifecycleListener = AwsSqsSourceTest.class)
+@LocalStackContainerSupport(services = AwsService.SQS, containerLifecycleListener = AwsSqsSourceTest.class)
 public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackContainer> {
 
     @CitrusResource
@@ -84,7 +85,7 @@ public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackCo
     }
 
     private void sendSqsEvent(TestContext context) {
-        SqsClient sqsClient = localStackContainer.getClient(LocalStackContainer.Service.SQS);
+        SqsClient sqsClient = localStackContainer.getClient(AwsService.SQS);
 
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
@@ -100,7 +101,7 @@ public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackCo
     @Override
     public Map<String, String> started(LocalStackContainer container) {
         // Create SQS queue acting as a SNS notification endpoint
-        SqsClient sqsClient = container.getClient(LocalStackContainer.Service.SQS);
+        SqsClient sqsClient = container.getClient(AwsService.SQS);
         sqsClient.createQueue(b -> b.queueName(sqsQueueName));
 
         Map<String, String> conf = new HashMap<>();
