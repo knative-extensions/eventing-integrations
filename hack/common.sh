@@ -4,7 +4,8 @@ set -euo pipefail
 
 export JSONATA_IMAGE_TAG=${TAG:-$(git rev-parse HEAD)}
 
-export TRANSFORM_JSONATA_IMAGE_WITH_TAG="${KO_DOCKER_REPO:-kind.local}/transform-jsonata:${JSONATA_IMAGE_TAG}"
+export TRANSFORM_JSONATA_IMAGE_REPO="${KO_DOCKER_REPO:-kind.local}/transform-jsonata"
+export TRANSFORM_JSONATA_IMAGE_WITH_TAG="${TRANSFORM_JSONATA_IMAGE_REPO}:${JSONATA_IMAGE_TAG}"
 
 [[ ! -v REPO_ROOT_DIR ]] && REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
 readonly REPO_ROOT_DIR
@@ -55,7 +56,7 @@ function push_transform_jsonata_image() {
     docker manifest push "${TRANSFORM_JSONATA_IMAGE_WITH_TAG}" || return $?
 
     digest=$(docker buildx imagetools inspect "${TRANSFORM_JSONATA_IMAGE_WITH_TAG}" --format "{{json .Manifest.Digest }}" | tr -d '"')
-    TRANSFORM_JSONATA_IMAGE="${TRANSFORM_JSONATA_IMAGE_WITH_TAG}@${digest}"
+    TRANSFORM_JSONATA_IMAGE="${TRANSFORM_JSONATA_IMAGE_REPO}@${digest}"
     export TRANSFORM_JSONATA_IMAGE
 
     echo "TRANSFORM_JSONATA_IMAGE=${TRANSFORM_JSONATA_IMAGE}"
