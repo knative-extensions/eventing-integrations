@@ -33,9 +33,17 @@ import org.citrusframework.validation.json.JsonTextMessageValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutRuleResponse;
+import software.amazon.awssdk.services.eventbridge.model.Target;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+
+import java.util.Collections;
+import java.util.Map;
 
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
@@ -49,7 +57,8 @@ public abstract class AwsEventBridgeSinkTestBase {
     private final String eventData = """
             { "message": "Hello from AWS EventBridge!" }
             """;
-    protected final String sqsQueueName = "event-queue";
+    protected static final String eventBusName = "default";
+    protected static final String sqsQueueName = "eventbridge-sink-queue";
 
     @BindToRegistry
     public HttpClient knativeTrigger = HttpEndpoints.http()
@@ -58,7 +67,7 @@ public abstract class AwsEventBridgeSinkTestBase {
                 .build();
 
     @Inject
-    private SqsClient sqsClient;
+    protected SqsClient sqsClient;
 
     @Test
     public void shouldConsumeEvents() {
@@ -104,16 +113,65 @@ public abstract class AwsEventBridgeSinkTestBase {
         Message controlMessage = new DefaultMessage("""
                 {
                     "version": "0",
-                    "id": "@isUUIDv4()@",
+                    "id": "@ignore@",
                     "detail-type": "Object Created",
                     "source": "knative-connect.aws.s3",
-                    "account": "000000000000",
+                    "account": "@ignore@",
                     "time": "@ignore@",
-                    "region": "us-east-1",
+                    "region": "%s",
                     "resources": [ "arn:aws:s3:us-east-1:000000000000:my-bucket" ],
                     "detail": %s
                 }
-                """.formatted(eventData));
+                """.formatted(sqsClient.serviceClientConfiguration().region().id(), eventData));
         validator.validateMessage(new DefaultMessage(receiveMessageResponse.messages().getFirst().body()), controlMessage, context, new DefaultMessageValidationContext());
+    }
+
+    public static void setupEventBridgeAndSqs(final EventBridgeClient eventBridgeClient, final SqsClient sqsClient) {
+        // Add an EventBridge rule on the event
+        PutRuleResponse putRuleResponse = eventBridgeClient.putRule(b -> b.name("eventbridge-sink-cdc")
+                .eventBusName(eventBusName)
+                .eventPattern("""
+                    {
+                        "source": ["knative-connect.aws.s3"],
+                        "detail-type": ["Object Created"]
+                    }
+                    """));
+
+        // Create SQS queue acting as an EventBridge notification endpoint
+        CreateQueueResponse createQueueResponse = sqsClient.createQueue(b -> b.queueName(sqsQueueName));
+
+        // Modify access policy for the queue just created, so EventBridge rule is allowed to send messages
+        String queueUrl = createQueueResponse.queueUrl();
+        Map<QueueAttributeName, String> queueAttributes = sqsClient.getQueueAttributes(b -> b.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).attributes();
+        String queueArn = queueAttributes.get(QueueAttributeName.QUEUE_ARN);
+
+        sqsClient.setQueueAttributes(b -> b.queueUrl(queueUrl).attributes(Collections.singletonMap(QueueAttributeName.POLICY, """
+                {
+                    "Version": "2012-10-17",
+                    "Id": "%s/SQSDefaultPolicy",
+                    "Statement":
+                    [
+                        {
+                            "Sid": "EventsToMyQueue",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "events.amazonaws.com"
+                            },
+                            "Action": "sqs:SendMessage",
+                            "Resource": "%s",
+                            "Condition": {
+                                "ArnEquals": {
+                                    "aws:SourceArn": "%s"
+                                }
+                            }
+                        }
+                    ]
+                }
+                """.formatted(queueArn, queueArn, putRuleResponse.ruleArn()))));
+
+        // Add a target for EventBridge rule which will be the SQS Queue just created
+        eventBridgeClient.putTargets(b -> b.rule("eventbridge-sink-cdc")
+                .eventBusName(eventBusName)
+                .targets(Target.builder().id("eventbrindge-sqs-sub").arn(queueArn).build()));
     }
 }

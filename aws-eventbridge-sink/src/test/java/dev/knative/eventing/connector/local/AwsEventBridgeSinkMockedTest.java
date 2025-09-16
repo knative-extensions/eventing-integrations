@@ -23,13 +23,8 @@ import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
 import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutRuleResponse;
-import software.amazon.awssdk.services.eventbridge.model.Target;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,59 +32,11 @@ import java.util.Map;
 @LocalStackContainerSupport(services = { AwsService.EVENT_BRIDGE, AwsService.SQS }, containerLifecycleListener = AwsEventBridgeSinkMockedTest.class)
 public class AwsEventBridgeSinkMockedTest extends AwsEventBridgeSinkTestBase implements ContainerLifecycleListener<LocalStackContainer> {
 
-    private final String eventBusName = "default";
-
     @Override
     public Map<String, String> started(LocalStackContainer container) {
         EventBridgeClient eventBridgeClient = container.getClient(AwsService.EVENT_BRIDGE);
-
-        // Add an EventBridge rule on the event
-        PutRuleResponse putRuleResponse = eventBridgeClient.putRule(b -> b.name("events-cdc")
-                .eventBusName(eventBusName)
-                .eventPattern("""
-                    {
-                        "source": ["knative-connect.aws.s3"],
-                        "detail-type": ["Object Created"]
-                    }
-                    """));
-
-        // Create SQS queue acting as an EventBridge notification endpoint
         SqsClient sqsClient = container.getClient(AwsService.SQS);
-        CreateQueueResponse createQueueResponse = sqsClient.createQueue(b -> b.queueName(sqsQueueName));
-
-        // Modify access policy for the queue just created, so EventBridge rule is allowed to send messages
-        String queueUrl = createQueueResponse.queueUrl();
-        Map<QueueAttributeName, String> queueAttributes = sqsClient.getQueueAttributes(b -> b.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).attributes();
-        String queueArn = queueAttributes.get(QueueAttributeName.QUEUE_ARN);
-
-        sqsClient.setQueueAttributes(b -> b.queueUrl(queueUrl).attributes(Collections.singletonMap(QueueAttributeName.POLICY, """
-                {
-                    "Version": "2012-10-17",
-                    "Id": "%s/SQSDefaultPolicy",
-                    "Statement":
-                    [
-                        {
-                            "Sid": "EventsToMyQueue",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "events.amazonaws.com"
-                            },
-                            "Action": "sqs:SendMessage",
-                            "Resource": "%s",
-                            "Condition": {
-                                "ArnEquals": {
-                                    "aws:SourceArn": "%s"
-                                }
-                            }
-                        }
-                    ]
-                }
-                """.formatted(queueArn, queueArn, putRuleResponse.ruleArn()))));
-
-        // Add a target for EventBridge rule which will be the SQS Queue just created
-        eventBridgeClient.putTargets(b -> b.rule("events-cdc")
-                .eventBusName(eventBusName)
-                .targets(Target.builder().id("sqs-sub").arn(queueArn).build()));
+        setupEventBridgeAndSqs(eventBridgeClient, sqsClient);
 
         Map<String, String> conf = new HashMap<>();
         conf.put("camel.kamelet.aws-eventbridge-sink.accessKey", container.getAccessKey());
