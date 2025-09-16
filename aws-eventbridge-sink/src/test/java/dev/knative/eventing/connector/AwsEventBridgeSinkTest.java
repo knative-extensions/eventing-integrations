@@ -176,7 +176,8 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
 
         // Modify access policy for the queue just created, so EventBridge rule is allowed to send messages
         String queueUrl = createQueueResponse.queueUrl();
-        String queueArn = "arn:aws:sqs:%s:000000000000:%s".formatted(container.getRegion(), sqsQueueName);
+        Map<QueueAttributeName, String> queueAttributes = sqsClient.getQueueAttributes(b -> b.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).attributes();
+        String queueArn = queueAttributes.get(QueueAttributeName.QUEUE_ARN);
 
         sqsClient.setQueueAttributes(b -> b.queueUrl(queueUrl).attributes(Collections.singletonMap(QueueAttributeName.POLICY, """
                 {
