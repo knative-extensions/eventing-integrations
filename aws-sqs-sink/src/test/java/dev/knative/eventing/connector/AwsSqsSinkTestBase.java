@@ -43,7 +43,7 @@ public abstract class AwsSqsSinkTestBase {
     private TestCaseRunner tc;
 
     private final String sqsData = "Hello from AWS SQS!";
-    protected final String sqsQueueName = "myqueue";
+    protected final String sqsQueueName = "sqs-sink-queue";
 
     @BindToRegistry
     public HttpClient knativeTrigger = HttpEndpoints.http()
