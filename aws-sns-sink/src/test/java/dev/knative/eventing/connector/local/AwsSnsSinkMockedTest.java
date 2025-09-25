@@ -22,13 +22,8 @@ import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
 import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
-import org.junit.jupiter.api.Assertions;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
-import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,26 +35,9 @@ public class AwsSnsSinkMockedTest extends AwsSnsSinkTestBase implements Containe
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        // Create SQS queue acting as a SNS notification endpoint
         SqsClient sqsClient = container.getClient(AwsService.SQS);
-
-        CreateQueueResponse createQueueResponse = sqsClient.createQueue(b -> b.queueName(sqsQueueName));
-        String queueUrl = createQueueResponse.queueUrl();
-        Map<QueueAttributeName, String> queueAttributes = sqsClient.getQueueAttributes(b -> b.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).attributes();
-        String queueArn = queueAttributes.get(QueueAttributeName.QUEUE_ARN);
-
-        // Create SNS topic
         SnsClient snsClient = container.getClient(AwsService.SNS);
-
-        CreateTopicResponse topicResponse = snsClient.createTopic(b -> b.name(snsTopicName));
-
-        // Subscribe SQS Queue to SNS topic as a notification endpoint
-        SubscribeResponse subscribeResponse = snsClient.subscribe(b -> b.protocol("sqs")
-                .returnSubscriptionArn(true)
-                .endpoint(queueArn)
-                .topicArn(topicResponse.topicArn()));
-
-        Assertions.assertTrue(subscribeResponse.sdkHttpResponse().isSuccessful());
+        setupSnsAndSqs(sqsClient, snsClient);
 
         Map<String, String> conf = new HashMap<>();
         conf.put("camel.kamelet.aws-sns-sink.accessKey", container.getAccessKey());
@@ -68,6 +46,7 @@ public class AwsSnsSinkMockedTest extends AwsSnsSinkTestBase implements Containe
         conf.put("camel.kamelet.aws-sns-sink.topicNameOrArn", snsTopicName);
         conf.put("camel.kamelet.aws-sns-sink.uriEndpointOverride", container.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-sns-sink.overrideEndpoint", "true");
+        conf.put("camel.kamelet.aws-sns-sink.autoCreateTopic", "true");
         conf.put("camel.component.aws2-sns.autowired-enabled", "false");
 
         conf.put("quarkus.sqs.endpoint-override", container.getServiceEndpoint().toString());

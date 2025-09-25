@@ -3,11 +3,14 @@ aws iam create-user --user-name eventing-integrations-tests
 # s3 sink
 aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-# sqs sink + eventbridge sink
+# sqs sink + eventbridge sink + sns sink
 aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonSQSFullAccess
 
 # eventbridge sink
 aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess
+
+# sns sink
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonSNSFullAccess
 
 # list all policies
 aws iam list-user-policies --user-name eventing-integrations-tests
