@@ -26,7 +26,6 @@ import org.citrusframework.spi.BindToRegistry;
 import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
 import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
-import software.amazon.awssdk.services.sqs.SqsClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,10 +49,6 @@ public class AwsSqsSourceMockedTest extends AwsSqsSourceTestBase implements Cont
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        // Create SQS queue acting as a SNS notification endpoint
-        SqsClient sqsClient = container.getClient(AwsService.SQS);
-        sqsClient.createQueue(b -> b.queueName(sqsQueueName));
-
         Map<String, String> conf = new HashMap<>();
         conf.put("camel.kamelet.aws-sqs-source.accessKey", container.getAccessKey());
         conf.put("camel.kamelet.aws-sqs-source.secretKey", container.getSecretKey());
@@ -61,6 +56,7 @@ public class AwsSqsSourceMockedTest extends AwsSqsSourceTestBase implements Cont
         conf.put("camel.kamelet.aws-sqs-source.queueNameOrArn", sqsQueueName);
         conf.put("camel.kamelet.aws-sqs-source.uriEndpointOverride", container.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-sqs-source.overrideEndpoint", "true");
+        conf.put("camel.kamelet.aws-sqs-source.autoCreateQueue", "true");
         conf.put("camel.component.aws2-sqs.autowired-enabled", "false");
 
         conf.put("quarkus.sqs.endpoint-override", container.getServiceEndpoint().toString());

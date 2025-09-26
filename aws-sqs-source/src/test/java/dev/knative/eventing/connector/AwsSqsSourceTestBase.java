@@ -39,7 +39,7 @@ public abstract class AwsSqsSourceTestBase {
     private TestCaseRunner tc;
 
     private final String sqsData = "Hello from AWS SQS!";
-    protected final String sqsQueueName = "myqueue";
+    protected final String sqsQueueName = "sqs-source-queue";
 
     @Inject
     private SqsClient sqsClient;
