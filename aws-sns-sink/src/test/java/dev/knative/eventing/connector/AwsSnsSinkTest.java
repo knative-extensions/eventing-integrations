@@ -81,6 +81,7 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
                     .header("ce-type", "dev.knative.eventing.aws.sns")
                     .header("ce-source", "dev.knative.eventing.aws-sns-source")
                     .header("ce-subject", "aws-sns-source")
+                    .header("ce-apiVersion", "v1")
         );
 
         tc.when(
@@ -110,7 +111,14 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
 
         try {
             Assertions.assertEquals(1, receiveMessageResponse.messages().size());
-            Assertions.assertTrue(receiveMessageResponse.messages().get(0).body().contains(snsData));
+            String body = receiveMessageResponse.messages().getFirst().body();
+            Assertions.assertTrue(body.contains("\"Message\": \"%s\"".formatted(snsData)));
+            Assertions.assertTrue(body.contains("\"Subject\": \"aws-sns-source\""));
+            Assertions.assertTrue(body.contains("ce-id"));
+            Assertions.assertTrue(body.contains("ce-type"));
+            Assertions.assertTrue(body.contains("ce-source"));
+            Assertions.assertTrue(body.contains("ce-subject"));
+            Assertions.assertTrue(body.contains("ce-apiVersion"));
         } catch (AssertionFailedError error) {
             throw new CitrusRuntimeException("SNS data verification failed", error);
         }
