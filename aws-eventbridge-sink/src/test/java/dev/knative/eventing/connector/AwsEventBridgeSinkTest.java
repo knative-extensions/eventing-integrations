@@ -84,7 +84,7 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                     .body(eventData)
                     .header("ce-id", "citrus:randomPattern([0-9A-Z]{15}-[0-9]{16})@")
                     .header("ce-type", "dev.knative.eventing.aws.eventbridge")
-                    .header("ce-source", "dev.knative.eventing.aws-eventbridge-source")
+                    .header("ce-source", "aws.s3")
                     .header("ce-subject", "aws-eventbridge-source")
         );
 
