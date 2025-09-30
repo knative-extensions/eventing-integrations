@@ -1,6 +1,6 @@
 aws iam create-user --user-name eventing-integrations-tests
 
-# s3 sink
+# s3 sink + aws s3 source
 aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
 # sqs sink + eventbridge sink + sns sink + sqs source

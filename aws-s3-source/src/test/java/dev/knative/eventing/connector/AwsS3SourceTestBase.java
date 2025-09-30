@@ -44,7 +44,7 @@ public abstract class AwsS3SourceTestBase {
 
     private final String s3Key = "message.txt";
     private final String s3Data = "Hello from AWS S3!";
-    protected final String s3BucketName = "mybucket";
+    protected final String s3BucketName = "aws3-s3-source-bucket";
 
     @Inject
     private S3Client s3Client;

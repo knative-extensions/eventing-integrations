@@ -26,7 +26,6 @@ import org.citrusframework.spi.BindToRegistry;
 import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
 import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
-import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,9 +50,6 @@ public class AwsS3SourceMockedTest extends AwsS3SourceTestBase implements Contai
 
     @Override
     public Map<String, String> started(LocalStackContainer container) {
-        S3Client s3Client = container.getClient(AwsService.S3);
-        s3Client.createBucket(b -> b.bucket(s3BucketName));
-
         Map<String, String> conf = new HashMap<>();
         conf.put("camel.kamelet.aws-s3-source.accessKey", container.getAccessKey());
         conf.put("camel.kamelet.aws-s3-source.secretKey", container.getSecretKey());
@@ -62,6 +58,7 @@ public class AwsS3SourceMockedTest extends AwsS3SourceTestBase implements Contai
         conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", container.getServiceEndpoint().toString());
         conf.put("camel.kamelet.aws-s3-source.overrideEndpoint", "true");
         conf.put("camel.kamelet.aws-s3-source.forcePathStyle", "true");
+        conf.put("camel.kamelet.aws-s3-source.autoCreateBucket", "true");
         conf.put("camel.component.aws2-s3.autowired-enabled", "false");
 
         conf.put("quarkus.s3.endpoint-override", container.getServiceEndpoint().toString());
