@@ -110,6 +110,18 @@
       <artifactId>citrus-validation-json</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Test dependencies - used with aws-integration-tests profile  -->
+    <dependency>
+      <groupId>io.quarkiverse.amazonservices</groupId>
+      <artifactId>quarkus-amazon-dynamodb</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>url-connection-client</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
