@@ -53,21 +53,7 @@ public class AwsDdbStreamsSourceMockedTest extends AwsDdbStreamsSourceTestBase i
     @Override
     public Map<String, String> started(LocalStackContainer container) {
         DynamoDbClient ddbClient = container.getClient(AwsService.DYNAMODB);
-
-        ddbClient.createTable(b -> {
-            b.tableName(ddbTableName);
-            b.keySchema(KeySchemaElement.builder().attributeName("id").keyType(KeyType.HASH).build());
-            b.attributeDefinitions(AttributeDefinition.builder().attributeName("id").attributeType(ScalarAttributeType.N).build());
-
-            b.streamSpecification(StreamSpecification.builder()
-                    .streamEnabled(true)
-                    .streamViewType(StreamViewType.NEW_AND_OLD_IMAGES).build());
-
-            b.provisionedThroughput(
-                    ProvisionedThroughput.builder()
-                            .readCapacityUnits(1L)
-                            .writeCapacityUnits(1L).build());
-        });
+        setupDdb(ddbClient);
 
         Map<String, String> conf = new HashMap<>();
         conf.put("camel.kamelet.aws-ddb-streams-source.accessKey", container.getAccessKey());

@@ -12,6 +12,9 @@ aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn 
 # sns sink
 aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonSNSFullAccess
 
+# ddb streams source
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+
 # list all policies
 aws iam list-user-policies --user-name eventing-integrations-tests
 
