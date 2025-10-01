@@ -1,0 +1,30 @@
+# ddb streams source
+aws dynamodb delete-table --table-name ddb-streams-source
+
+# eventbridge sink
+EVENT_BRIDGE_QUEUE_URL=$(aws sqs get-queue-url --queue-name eventbridge-sink-queue)
+aws sqs delete-queue --queue-url $EVENT_BRIDGE_QUEUE_URL
+aws events remove-targets --rule eventbridge-sink-cdc --ids eventbrindge-sqs-sub
+aws events delete-rule --name eventbridge-sink-cdc
+
+# s3 sink
+aws s3api delete-bucket --bucket aws3-s3-sink-bucket
+
+# s3 source
+aws s3api delete-bucket --bucket aws3-s3-source-bucket
+
+# sns sink
+SNS_QUEUE_URL=$(aws sqs get-queue-url --queue-name sns-sink-queue)
+aws sqs delete-queue --queue-url $SNS_QUEUE_URL
+SNS_TOPIC_ARN=$(aws sns list-topics --query "Topics[?ends_with(TopicArn, 'sns-sink-topic')].TopicArn" --output text)
+SNS_SUBSCRIPTION_ARN=$(aws sns list-subscriptions-by-topic --topic-arn "$SNS_TOPIC_ARN" --query "Subscriptions[].SubscriptionArn" --output text)
+aws sns unsubscribe --subscription-arn $SNS_SUBSCRIPTION_ARN
+aws sns delete-topic --topic-arn $SNS_TOPIC_ARN
+
+# sqs sink
+SQS_SINK_QUEUE_URL=$(aws sqs get-queue-url --queue-name sqs-sink-queue)
+aws sqs delete-queue --queue-url $SQS_SINK_QUEUE_URL
+
+# sqs source
+SQS_SOURCE_QUEUE_URL=$(aws sqs get-queue-url --queue-name sqs-source-queue)
+aws sqs delete-queue --queue-url $SQS_SOURCE_QUEUE_URL
