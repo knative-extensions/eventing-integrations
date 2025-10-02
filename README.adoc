@@ -511,3 +511,81 @@ For more detailed description of all container image configuration options pleas
 
 * https://quarkus.io/guides/deploying-to-kubernetes
 * https://quarkus.io/guides/container-image
+
+== AWS Integration tests
+
+Some modules have option to run integration tests against real AWS services instead of LocalStack emulated services.
+The test set executed during build is controlled by `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. When set, only AWS integration tests are executed,
+the rest is ignored.
+
+[source,shell]
+----
+export AWS_ACCESS_KEY_ID=<access_key_id>
+export AWS_SECRET_ACCESS_KEY=<secret_access_key>
+
+mvn test
+----
+
+Tests require permissions to AWS services that they are testing. Necessary permission can be provided by
+
+[source,shell]
+----
+aws iam create-user --user-name eventing-integrations-tests
+
+# s3 sink + aws s3 source
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+# sqs sink + eventbridge sink + sns sink + sqs source
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonSQSFullAccess
+
+# eventbridge sink
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess
+
+# sns sink
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonSNSFullAccess
+
+# ddb streams source
+aws iam attach-user-policy --user-name eventing-integrations-tests --policy-arn arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+
+# list all policies
+aws iam list-user-policies --user-name eventing-integrations-tests
+
+# create access key
+aws iam create-access-key --user-name eventing-integrations-tests
+----
+
+Tests do not clean AWS environment automatically. After tests execution, the AWS can be cleaned by
+
+[source,shell]
+----
+# ddb streams source
+aws dynamodb delete-table --table-name ddb-streams-source
+
+# eventbridge sink
+EVENT_BRIDGE_QUEUE_URL=$(aws sqs get-queue-url --queue-name eventbridge-sink-queue)
+aws sqs delete-queue --queue-url $EVENT_BRIDGE_QUEUE_URL
+aws events remove-targets --rule eventbridge-sink-cdc --ids eventbrindge-sqs-sub
+aws events delete-rule --name eventbridge-sink-cdc
+
+# s3 sink
+aws s3api delete-bucket --bucket aws3-s3-sink-bucket
+
+# s3 source
+aws s3api delete-bucket --bucket aws3-s3-source-bucket
+
+# sns sink
+SNS_QUEUE_URL=$(aws sqs get-queue-url --queue-name sns-sink-queue)
+aws sqs delete-queue --queue-url $SNS_QUEUE_URL
+SNS_TOPIC_ARN=$(aws sns list-topics --query "Topics[?ends_with(TopicArn, 'sns-sink-topic')].TopicArn" --output text)
+SNS_SUBSCRIPTION_ARN=$(aws sns list-subscriptions-by-topic --topic-arn "$SNS_TOPIC_ARN" --query "Subscriptions[].SubscriptionArn" --output text)
+aws sns unsubscribe --subscription-arn $SNS_SUBSCRIPTION_ARN
+aws sns delete-topic --topic-arn $SNS_TOPIC_ARN
+
+# sqs sink
+SQS_SINK_QUEUE_URL=$(aws sqs get-queue-url --queue-name sqs-sink-queue)
+aws sqs delete-queue --queue-url $SQS_SINK_QUEUE_URL
+
+# sqs source
+SQS_SOURCE_QUEUE_URL=$(aws sqs get-queue-url --queue-name sqs-source-queue)
+aws sqs delete-queue --queue-url $SQS_SOURCE_QUEUE_URL
+----
