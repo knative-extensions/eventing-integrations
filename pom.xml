@@ -146,6 +146,9 @@
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                             <maven.home>${maven.home}</maven.home>
                         </systemPropertyVariables>
+                        <excludes>
+                            <exclude>**/aws/*</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -200,6 +203,28 @@
                 <skipITs>false</skipITs>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
+        </profile>
+        <profile>
+            <id>aws-integration-tests</id>
+            <activation>
+                <property>
+                  <!-- the aws-integration profile actually needs AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, but let's enable
+                       the profile only on AWS_ACCESS_KEY_ID. The maven(3) doesn't support activation based on multiple properties.
+                  -->
+                  <name>env.AWS_ACCESS_KEY_ID</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <test>**/aws/**/*Test.java</test>
+                            <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
