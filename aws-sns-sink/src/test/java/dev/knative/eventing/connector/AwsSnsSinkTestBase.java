@@ -17,12 +17,12 @@
 package dev.knative.eventing.connector;
 
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.citrusframework.TestCaseRunner;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -30,9 +30,6 @@ import org.citrusframework.http.client.HttpClient;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
-import org.citrusframework.testcontainers.aws2.LocalStackContainer;
-import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
-import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
@@ -41,33 +38,33 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 import static org.citrusframework.container.RepeatOnErrorUntilTrue.Builder.repeatOnError;
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
-@LocalStackContainerSupport(services = { AwsService.SNS, AwsService.SQS },
-                            containerLifecycleListener = AwsSnsSinkTest.class)
 @CitrusSupport
-public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackContainer> {
+public abstract class AwsSnsSinkTestBase {
 
     @CitrusResource
     private TestCaseRunner tc;
 
     private final String snsData = "Hello from AWS SNS!";
-    private final String snsTopicName = "mytopic";
-    private final String sqsQueueName = "myqueue";
-
-    @CitrusResource
-    private LocalStackContainer localStackContainer;
+    protected static final String snsTopicName = "sns-sink-topic";
+    protected static final String sqsQueueName = "sns-sink-queue";
 
     @BindToRegistry
     public HttpClient knativeTrigger = HttpEndpoints.http()
                 .client()
                 .requestUrl("http://localhost:8081")
                 .build();
+
+    @Inject
+    protected SqsClient sqsClient;
 
     @Test
     public void shouldConsumeEvents() {
@@ -96,7 +93,6 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
     }
 
     private void verifySnsData(TestContext context) {
-        SqsClient sqsClient = localStackContainer.getClient(AwsService.SQS);
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
 
@@ -116,33 +112,45 @@ public class AwsSnsSinkTest implements ContainerLifecycleListener<LocalStackCont
         }
     }
 
-    @Override
-    public Map<String, String> started(LocalStackContainer container) {
+    public static void setupSnsAndSqs(final SqsClient sqsClient, final SnsClient snsClient) {
         // Create SQS queue acting as a SNS notification endpoint
-        SqsClient sqsClient = container.getClient(AwsService.SQS);
-
-        sqsClient.createQueue(b -> b.queueName(sqsQueueName));
-
-        // Create SNS topic
-        SnsClient snsClient = container.getClient(AwsService.SNS);
+        CreateQueueResponse createQueueResponse = sqsClient.createQueue(b -> b.queueName(sqsQueueName));
+        String queueUrl = createQueueResponse.queueUrl();
+        Map<QueueAttributeName, String> queueAttributes = sqsClient.getQueueAttributes(b -> b.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).attributes();
+        String queueArn = queueAttributes.get(QueueAttributeName.QUEUE_ARN);
 
         CreateTopicResponse topicResponse = snsClient.createTopic(b -> b.name(snsTopicName));
 
         // Subscribe SQS Queue to SNS topic as a notification endpoint
         SubscribeResponse subscribeResponse = snsClient.subscribe(b -> b.protocol("sqs")
                 .returnSubscriptionArn(true)
-                .endpoint("arn:aws:sqs:%s:000000000000:%s".formatted(container.getRegion(), sqsQueueName))
+                .endpoint(queueArn)
                 .topicArn(topicResponse.topicArn()));
 
-        Assertions.assertTrue(subscribeResponse.sdkHttpResponse().isSuccessful());
+        sqsClient.setQueueAttributes(b -> b.queueUrl(queueUrl).attributes(Collections.singletonMap(QueueAttributeName.POLICY, """
+                {
+                    "Version": "2012-10-17",
+                    "Id": "%s/SQSDefaultPolicy",
+                    "Statement":
+                    [
+                        {
+                            "Sid": "EventsToMyQueue",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "sns.amazonaws.com"
+                            },
+                            "Action": "sqs:SendMessage",
+                            "Resource": "%s",
+                            "Condition": {
+                                "ArnEquals": {
+                                    "aws:SourceArn": "%s"
+                                }
+                            }
+                        }
+                    ]
+                }
+                """.formatted(queueArn, queueArn, topicResponse.topicArn()))));
 
-        Map<String, String> conf = new HashMap<>();
-        conf.put("camel.kamelet.aws-sns-sink.accessKey", container.getAccessKey());
-        conf.put("camel.kamelet.aws-sns-sink.secretKey", container.getSecretKey());
-        conf.put("camel.kamelet.aws-sns-sink.region", container.getRegion());
-        conf.put("camel.kamelet.aws-sns-sink.topicNameOrArn", snsTopicName);
-        conf.put("camel.kamelet.aws-sns-sink.uriEndpointOverride", container.getServiceEndpoint().toString());
-        conf.put("camel.kamelet.aws-sns-sink.overrideEndpoint", "true");
-        return conf;
+        Assertions.assertTrue(subscribeResponse.sdkHttpResponse().isSuccessful());
     }
 }

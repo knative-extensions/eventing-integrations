@@ -20,62 +20,41 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.citrusframework.TestCaseRunner;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
-import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
-import org.citrusframework.spi.BindToRegistry;
-import org.citrusframework.testcontainers.aws2.LocalStackContainer;
-import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
-import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
-import software.amazon.awssdk.services.dynamodb.model.KeyType;
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
-import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
-import software.amazon.awssdk.services.dynamodb.model.StreamSpecification;
-import software.amazon.awssdk.services.dynamodb.model.StreamViewType;
+import software.amazon.awssdk.services.dynamodb.model.*;
+import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 
 import static org.citrusframework.actions.CreateVariablesAction.Builder.createVariable;
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = AwsService.DYNAMODB, containerLifecycleListener = AwsDdbStreamsSourceTest.class)
-public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<LocalStackContainer> {
+public abstract class AwsDdbStreamsSourceTestBase {
 
     @CitrusResource
     private TestCaseRunner tc;
 
-    private final String ddbTableName = "movies";
+    protected static final String ddbTableName = "ddb-streams-source";
 
-    @CitrusResource
-    private LocalStackContainer localStackContainer;
-
-    @BindToRegistry
-    public HttpServer knativeBroker = HttpEndpoints.http()
-            .server()
-            .port(8080)
-            .timeout(5000L)
-            .autoStart(true)
-            .build();
+    @Inject
+    protected DynamoDbClient ddbClient;
 
     @Test
     public void shouldProduceEvents() {
-        tc.given(createVariable("aws.region", localStackContainer.getRegion()));
+        tc.given(createVariable("aws.region", ddbClient.serviceClientConfiguration().region().id()));
 
         tc.given(this::putItem);
 
         tc.when(
-            http().server(knativeBroker)
+            http().server(getKnativeBroker())
                     .receive()
                     .post()
                     .message()
@@ -110,7 +89,7 @@ public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<Local
         );
 
         tc.then(
-            http().server(knativeBroker)
+            http().server(getKnativeBroker())
                     .send()
                     .response(HttpStatus.OK)
         );
@@ -122,41 +101,37 @@ public class AwsDdbStreamsSourceTest implements ContainerLifecycleListener<Local
         item.put("year", AttributeValue.builder().n("1977").build());
         item.put("title", AttributeValue.builder().s("Star Wars IV").build());
 
-        DynamoDbClient ddbClient = localStackContainer.getClient(AwsService.DYNAMODB);
         ddbClient.putItem(b -> b.tableName(ddbTableName)
                 .item(item)
                 .returnValues(ReturnValue.ALL_OLD));
     }
 
-    @Override
-    public Map<String, String> started(LocalStackContainer container) {
-        DynamoDbClient ddbClient = container.getClient(AwsService.DYNAMODB);
+    public static void setupDdb(DynamoDbClient ddbClient) {
+        // create table if not exists
+        try {
+            ddbClient.describeTable(builder -> builder.tableName(ddbTableName));
+        } catch (ResourceNotFoundException rnfe) {
+            ddbClient.createTable(b -> {
+                b.tableName(ddbTableName);
+                b.keySchema(KeySchemaElement.builder().attributeName("id").keyType(KeyType.HASH).build());
+                b.attributeDefinitions(AttributeDefinition.builder().attributeName("id").attributeType(ScalarAttributeType.N).build());
 
-        ddbClient.createTable(b -> {
-            b.tableName(ddbTableName);
-            b.keySchema(KeySchemaElement.builder().attributeName("id").keyType(KeyType.HASH).build());
-            b.attributeDefinitions(AttributeDefinition.builder().attributeName("id").attributeType(ScalarAttributeType.N).build());
+                b.streamSpecification(StreamSpecification.builder()
+                        .streamEnabled(true)
+                        .streamViewType(StreamViewType.NEW_AND_OLD_IMAGES).build());
 
-            b.streamSpecification(StreamSpecification.builder()
-                    .streamEnabled(true)
-                    .streamViewType(StreamViewType.NEW_AND_OLD_IMAGES).build());
+                b.provisionedThroughput(
+                        ProvisionedThroughput.builder()
+                                .readCapacityUnits(1L)
+                                .writeCapacityUnits(1L).build());
+            });
 
-            b.provisionedThroughput(
-                    ProvisionedThroughput.builder()
-                            .readCapacityUnits(1L)
-                            .writeCapacityUnits(1L).build());
-        });
-
-        Map<String, String> conf = new HashMap<>();
-        conf.put("camel.kamelet.aws-ddb-streams-source.accessKey", container.getAccessKey());
-        conf.put("camel.kamelet.aws-ddb-streams-source.secretKey", container.getSecretKey());
-        conf.put("camel.kamelet.aws-ddb-streams-source.region", container.getRegion());
-        conf.put("camel.kamelet.aws-ddb-streams-source.table", ddbTableName);
-        conf.put("camel.kamelet.aws-ddb-streams-source.uriEndpointOverride", container.getServiceEndpoint().toString());
-        conf.put("camel.kamelet.aws-ddb-streams-source.overrideEndpoint", "true");
-        conf.put("camel.kamelet.aws-ddb-streams-source.streamIteratorType", "FROM_START");
-
-        return conf;
+            DynamoDbWaiter dynamoDbWaiter = ddbClient.waiter();
+            DescribeTableRequest describeTableRequest = DescribeTableRequest.builder().tableName(ddbTableName).build();
+            dynamoDbWaiter.waitUntilTableExists(describeTableRequest);
+        }
     }
+
+    protected abstract HttpServer getKnativeBroker();
 
 }

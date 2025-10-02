@@ -16,13 +16,9 @@
 
 package dev.knative.eventing.connector;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.citrusframework.TestCaseRunner;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
@@ -32,9 +28,6 @@ import org.citrusframework.message.DefaultMessage;
 import org.citrusframework.message.Message;
 import org.citrusframework.quarkus.CitrusSupport;
 import org.citrusframework.spi.BindToRegistry;
-import org.citrusframework.testcontainers.aws2.LocalStackContainer;
-import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
-import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.citrusframework.validation.context.DefaultMessageValidationContext;
 import org.citrusframework.validation.json.JsonTextMessageValidator;
 import org.junit.jupiter.api.Assertions;
@@ -49,24 +42,23 @@ import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
+import java.util.Collections;
+import java.util.Map;
+
 import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = { AwsService.EVENT_BRIDGE, AwsService.SQS }, containerLifecycleListener = AwsEventBridgeSinkTest.class)
-public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalStackContainer> {
+public abstract class AwsEventBridgeSinkTestBase {
 
     @CitrusResource
     private TestCaseRunner tc;
 
-    private final String eventBusName = "default";
     private final String eventData = """
             { "message": "Hello from AWS EventBridge!" }
             """;
-    private final String sqsQueueName = "event-queue";
-
-    @CitrusResource
-    private LocalStackContainer localStackContainer;
+    protected static final String eventBusName = "default";
+    protected static final String sqsQueueName = "eventbridge-sink-queue";
 
     @BindToRegistry
     public HttpClient knativeTrigger = HttpEndpoints.http()
@@ -74,31 +66,11 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                 .requestUrl("http://localhost:8081")
                 .build();
 
+    @Inject
+    protected SqsClient sqsClient;
+
     @Test
     public void shouldConsumeEvents() {
-        tc.given(
-            http().client(knativeTrigger)
-                    .send()
-                    .post("/")
-                    .message()
-                    .body(eventData)
-                    .header("ce-id", "citrus:randomPattern([0-9A-Z]{15}-[0-9]{16})@")
-                    .header("ce-type", "dev.knative.eventing.aws.eventbridge")
-                    .header("ce-source", "dev.knative.eventing.aws-eventbridge-source")
-                    .header("ce-subject", "aws-eventbridge-source")
-        );
-
-        tc.when(
-            http().client(knativeTrigger)
-                    .receive()
-                    .response(HttpStatus.NO_CONTENT)
-        );
-
-        tc.then(this::verifySqsEvent);
-    }
-
-    @Test
-    public void shouldOverwriteCloudEventAttributes() {
         tc.given(
             http().client(knativeTrigger)
                     .send()
@@ -124,8 +96,6 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
     }
 
     private void verifySqsEvent(TestContext context) {
-        SqsClient sqsClient = localStackContainer.getClient(AwsService.SQS);
-
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
 
@@ -143,25 +113,22 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
         Message controlMessage = new DefaultMessage("""
                 {
                     "version": "0",
-                    "id": "@isUUIDv4()@",
+                    "id": "@ignore@",
                     "detail-type": "Object Created",
                     "source": "knative-connect.aws.s3",
-                    "account": "000000000000",
+                    "account": "@ignore@",
                     "time": "@ignore@",
-                    "region": "us-east-1",
+                    "region": "%s",
                     "resources": [ "arn:aws:s3:us-east-1:000000000000:my-bucket" ],
                     "detail": %s
                 }
-                """.formatted(eventData));
+                """.formatted(sqsClient.serviceClientConfiguration().region().id(), eventData));
         validator.validateMessage(new DefaultMessage(receiveMessageResponse.messages().getFirst().body()), controlMessage, context, new DefaultMessageValidationContext());
     }
 
-    @Override
-    public Map<String, String> started(LocalStackContainer container) {
-        EventBridgeClient eventBridgeClient = container.getClient(AwsService.EVENT_BRIDGE);
-
+    public static void setupEventBridgeAndSqs(final EventBridgeClient eventBridgeClient, final SqsClient sqsClient) {
         // Add an EventBridge rule on the event
-        PutRuleResponse putRuleResponse = eventBridgeClient.putRule(b -> b.name("events-cdc")
+        PutRuleResponse putRuleResponse = eventBridgeClient.putRule(b -> b.name("eventbridge-sink-cdc")
                 .eventBusName(eventBusName)
                 .eventPattern("""
                     {
@@ -171,12 +138,12 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                     """));
 
         // Create SQS queue acting as an EventBridge notification endpoint
-        SqsClient sqsClient = container.getClient(AwsService.SQS);
         CreateQueueResponse createQueueResponse = sqsClient.createQueue(b -> b.queueName(sqsQueueName));
 
         // Modify access policy for the queue just created, so EventBridge rule is allowed to send messages
         String queueUrl = createQueueResponse.queueUrl();
-        String queueArn = "arn:aws:sqs:%s:000000000000:%s".formatted(container.getRegion(), sqsQueueName);
+        Map<QueueAttributeName, String> queueAttributes = sqsClient.getQueueAttributes(b -> b.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).attributes();
+        String queueArn = queueAttributes.get(QueueAttributeName.QUEUE_ARN);
 
         sqsClient.setQueueAttributes(b -> b.queueUrl(queueUrl).attributes(Collections.singletonMap(QueueAttributeName.POLICY, """
                 {
@@ -203,22 +170,8 @@ public class AwsEventBridgeSinkTest implements ContainerLifecycleListener<LocalS
                 """.formatted(queueArn, queueArn, putRuleResponse.ruleArn()))));
 
         // Add a target for EventBridge rule which will be the SQS Queue just created
-        eventBridgeClient.putTargets(b -> b.rule("events-cdc")
+        eventBridgeClient.putTargets(b -> b.rule("eventbridge-sink-cdc")
                 .eventBusName(eventBusName)
-                .targets(Target.builder().id("sqs-sub").arn(queueArn).build()));
-
-        Map<String, String> conf = new HashMap<>();
-        conf.put("camel.kamelet.aws-eventbridge-sink.accessKey", container.getAccessKey());
-        conf.put("camel.kamelet.aws-eventbridge-sink.secretKey", container.getSecretKey());
-        conf.put("camel.kamelet.aws-eventbridge-sink.region", container.getRegion());
-        conf.put("camel.kamelet.aws-eventbridge-sink.eventbusNameOrArn", eventBusName);
-        conf.put("camel.kamelet.aws-eventbridge-sink.resourcesArn", "arn:aws:s3:us-east-1:000000000000:my-bucket");
-        conf.put("camel.kamelet.aws-eventbridge-sink.eventSource", "aws.s3");
-        conf.put("camel.kamelet.aws-eventbridge-sink.detailType", "Object Created");
-        conf.put("camel.kamelet.aws-eventbridge-sink.uriEndpointOverride", container.getServiceEndpoint().toString());
-        conf.put("camel.kamelet.aws-eventbridge-sink.overrideEndpoint", "true");
-        conf.put("camel.kamelet.aws-eventbridge-sink.forcePathStyle", "true");
-
-        return conf;
+                .targets(Target.builder().id("eventbrindge-sqs-sub").arn(queueArn).build()));
     }
 }

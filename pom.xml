@@ -26,6 +26,7 @@
         <quarkus.container-image.insecure>true</quarkus.container-image.insecure>
         <quarkus.container-image.registry>localhost:5001</quarkus.container-image.registry>
         <quarkus.container-image.group>openshift-knative</quarkus.container-image.group>
+        <quarkiverse.amazonservices.version>3.9.1</quarkiverse.amazonservices.version>
 
         <!-- needed from tooling/archetypes -->
         <maven-version>3.9.9</maven-version>
@@ -98,6 +99,15 @@
                 <version>${citrus.version}</version>
                 <scope>test</scope>
             </dependency>
+
+            <!-- quarkus test dependencies -->
+            <dependency>
+                <groupId>io.quarkiverse.amazonservices</groupId>
+                <artifactId>quarkus-amazon-services-bom</artifactId>
+                <version>${quarkiverse.amazonservices.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -136,6 +146,9 @@
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                             <maven.home>${maven.home}</maven.home>
                         </systemPropertyVariables>
+                        <excludes>
+                            <exclude>**/aws/*</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -190,6 +203,28 @@
                 <skipITs>false</skipITs>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
+        </profile>
+        <profile>
+            <id>aws-integration-tests</id>
+            <activation>
+                <property>
+                  <!-- the aws-integration profile actually needs AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, but let's enable
+                       the profile only on AWS_ACCESS_KEY_ID. The maven(3) doesn't support activation based on multiple properties.
+                  -->
+                  <name>env.AWS_ACCESS_KEY_ID</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <test>**/aws/**/*Test.java</test>
+                            <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

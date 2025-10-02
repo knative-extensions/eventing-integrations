@@ -16,22 +16,14 @@
 
 package dev.knative.eventing.connector;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.citrusframework.TestCaseRunner;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
 import org.citrusframework.exceptions.CitrusRuntimeException;
-import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
-import org.citrusframework.spi.BindToRegistry;
-import org.citrusframework.testcontainers.aws2.LocalStackContainer;
-import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
-import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -41,32 +33,23 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = AwsService.SQS, containerLifecycleListener = AwsSqsSourceTest.class)
-public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackContainer> {
+public abstract class AwsSqsSourceTestBase {
 
     @CitrusResource
     private TestCaseRunner tc;
 
     private final String sqsData = "Hello from AWS SQS!";
-    private final String sqsQueueName = "myqueue";
+    protected final String sqsQueueName = "sqs-source-queue";
 
-    @CitrusResource
-    private LocalStackContainer localStackContainer;
-
-    @BindToRegistry
-    public HttpServer knativeBroker = HttpEndpoints.http()
-            .server()
-            .port(8080)
-            .timeout(5000L)
-            .autoStart(true)
-            .build();
+    @Inject
+    private SqsClient sqsClient;
 
     @Test
     public void shouldProduceEvents() {
         tc.given(this::sendSqsEvent);
 
         tc.when(
-            http().server(knativeBroker)
+            http().server(getKnativeBroker())
                     .receive()
                     .post()
                     .message()
@@ -78,15 +61,13 @@ public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackCo
         );
 
         tc.then(
-            http().server(knativeBroker)
+            http().server(getKnativeBroker())
                     .send()
                     .response(HttpStatus.OK)
         );
     }
 
     private void sendSqsEvent(TestContext context) {
-        SqsClient sqsClient = localStackContainer.getClient(AwsService.SQS);
-
         ListQueuesResponse listQueuesResult = sqsClient.listQueues(b ->
                 b.maxResults(100).queueNamePrefix(sqsQueueName));
 
@@ -98,19 +79,5 @@ public class AwsSqsSourceTest implements ContainerLifecycleListener<LocalStackCo
         sqsClient.sendMessage(b -> b.queueUrl(queueUrl).messageBody(sqsData));
     }
 
-    @Override
-    public Map<String, String> started(LocalStackContainer container) {
-        // Create SQS queue acting as a SNS notification endpoint
-        SqsClient sqsClient = container.getClient(AwsService.SQS);
-        sqsClient.createQueue(b -> b.queueName(sqsQueueName));
-
-        Map<String, String> conf = new HashMap<>();
-        conf.put("camel.kamelet.aws-sqs-source.accessKey", container.getAccessKey());
-        conf.put("camel.kamelet.aws-sqs-source.secretKey", container.getSecretKey());
-        conf.put("camel.kamelet.aws-sqs-source.region", container.getRegion());
-        conf.put("camel.kamelet.aws-sqs-source.queueNameOrArn", sqsQueueName);
-        conf.put("camel.kamelet.aws-sqs-source.uriEndpointOverride", container.getServiceEndpoint().toString());
-        conf.put("camel.kamelet.aws-sqs-source.overrideEndpoint", "true");
-        return conf;
-    }
+    protected abstract HttpServer getKnativeBroker();
 }

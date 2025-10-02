@@ -17,21 +17,14 @@
 package dev.knative.eventing.connector;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.citrusframework.TestCaseRunner;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.context.TestContext;
-import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.server.HttpServer;
 import org.citrusframework.quarkus.CitrusSupport;
-import org.citrusframework.spi.BindToRegistry;
-import org.citrusframework.testcontainers.aws2.LocalStackContainer;
-import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
-import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -44,33 +37,24 @@ import static org.citrusframework.http.actions.HttpActionBuilder.http;
 
 @QuarkusTest
 @CitrusSupport
-@LocalStackContainerSupport(services = AwsService.S3, containerLifecycleListener = AwsS3SourceTest.class)
-public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackContainer> {
+public abstract class AwsS3SourceTestBase {
 
     @CitrusResource
     private TestCaseRunner tc;
 
     private final String s3Key = "message.txt";
     private final String s3Data = "Hello from AWS S3!";
-    private final String s3BucketName = "mybucket";
+    protected final String s3BucketName = "aws3-s3-source-bucket";
 
-    @CitrusResource
-    private LocalStackContainer localStackContainer;
-
-    @BindToRegistry
-    public HttpServer knativeBroker = HttpEndpoints.http()
-            .server()
-            .port(8080)
-            .timeout(5000L)
-            .autoStart(true)
-            .build();
+    @Inject
+    private S3Client s3Client;
 
     @Test
     public void shouldProduceEvents() {
         tc.given(this::uploadS3File);
 
         tc.when(
-            http().server(knativeBroker)
+            http().server(getKnativeBroker())
                     .receive()
                     .post()
                     .message()
@@ -82,15 +66,13 @@ public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackCon
         );
 
         tc.then(
-            http().server(knativeBroker)
+            http().server(getKnativeBroker())
                     .send()
                     .response(HttpStatus.OK)
         );
     }
 
     private void uploadS3File(TestContext context) {
-        S3Client s3Client = localStackContainer.getClient(AwsService.S3);
-
         CreateMultipartUploadResponse initResponse = s3Client.createMultipartUpload(b -> b.bucket(s3BucketName).key(s3Key));
         String etag = s3Client.uploadPart(b -> b.bucket(s3BucketName)
                         .key(s3Key)
@@ -106,21 +88,5 @@ public class AwsS3SourceTest implements ContainerLifecycleListener<LocalStackCon
                 .uploadId(initResponse.uploadId()));
     }
 
-    @Override
-    public Map<String, String> started(LocalStackContainer container) {
-        S3Client s3Client = container.getClient(AwsService.S3);
-
-        s3Client.createBucket(b -> b.bucket(s3BucketName));
-
-        Map<String, String> conf = new HashMap<>();
-        conf.put("camel.kamelet.aws-s3-source.accessKey", container.getAccessKey());
-        conf.put("camel.kamelet.aws-s3-source.secretKey", container.getSecretKey());
-        conf.put("camel.kamelet.aws-s3-source.region", container.getRegion());
-        conf.put("camel.kamelet.aws-s3-source.bucketNameOrArn", s3BucketName);
-        conf.put("camel.kamelet.aws-s3-source.uriEndpointOverride", container.getServiceEndpoint().toString());
-        conf.put("camel.kamelet.aws-s3-source.overrideEndpoint", "true");
-        conf.put("camel.kamelet.aws-s3-source.forcePathStyle", "true");
-
-        return conf;
-    }
+    protected abstract HttpServer getKnativeBroker();
 }
