@@ -27,6 +27,10 @@ spec:
       name: default
     properties:
       type: ""
+    dataTypes:
+      out:
+        scheme: http
+        format: application/cloudevents
   sink:
     ref:
       kind: Kamelet
