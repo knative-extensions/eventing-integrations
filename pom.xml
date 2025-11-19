@@ -29,18 +29,9 @@
         <quarkiverse.amazonservices.version>3.9.1</quarkiverse.amazonservices.version>
 
         <!-- Multi-arch JIB configuration -->
-        <quarkus.jib.platforms.platform.amd64.os>linux</quarkus.jib.platforms.platform.amd64.os>
-        <quarkus.jib.platforms.platform.amd64.architecture>amd64</quarkus.jib.platforms.platform.amd64.architecture>
-
-        <quarkus.jib.platforms.platform.arm64.os>linux</quarkus.jib.platforms.platform.arm64.os>
-        <quarkus.jib.platforms.platform.arm64.architecture>arm64</quarkus.jib.platforms.platform.arm64.architecture>
-
-        <quarkus.jib.platforms.platform.s390x.os>linux</quarkus.jib.platforms.platform.s390x.os>
-        <quarkus.jib.platforms.platform.s390x.architecture>s390x</quarkus.jib.platforms.platform.s390x.architecture>
-
-        <quarkus.jib.platforms.platform.ppc64le.os>linux</quarkus.jib.platforms.platform.ppc64le.os>
-        <quarkus.jib.platforms.platform.ppc64le.architecture>ppc64le</quarkus.jib.platforms.platform.ppc64le.architecture>
-
+        <quarkus.jib.platforms>
+            linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
+        </quarkus.jib.platforms>
 
         <!-- needed from tooling/archetypes -->
         <maven-version>3.9.9</maven-version>
