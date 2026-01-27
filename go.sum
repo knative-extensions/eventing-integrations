@@ -1,2 +1,2 @@
-knative.dev/hack v0.0.0-20251022155947-4377a6911c51 h1:+iMce9Wps6bLus60GbKPXflzlsGSzflZQcmBVu6XHvA=
-knative.dev/hack v0.0.0-20251022155947-4377a6911c51/go.mod h1:L5RzHgbvam0u8QFHfzCX6MKxu/a/gIGEdaRBqNiVbl0=
+knative.dev/hack v0.0.0-20260120115810-bf6758cba446 h1:Y8raYHIuAL9/gUKGYD9/dD+EqUTmrpqVDowzfUVSlGs=
+knative.dev/hack v0.0.0-20260120115810-bf6758cba446/go.mod h1:L5RzHgbvam0u8QFHfzCX6MKxu/a/gIGEdaRBqNiVbl0=
