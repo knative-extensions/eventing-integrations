@@ -2,4 +2,4 @@ module knative.dev/eventing-integrations
 
 go 1.24
 
-require knative.dev/hack v0.0.0-20260318014029-7eede7fdcbad
+require knative.dev/hack v0.0.0-20260415132636-9909d690ab4d
