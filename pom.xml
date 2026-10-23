@@ -17,11 +17,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <camel.version>4.14.0</camel.version>
-        <camel.quarkus.platform.version>3.26.0</camel.quarkus.platform.version>
-        <citrus.version>4.8.0</citrus.version>
+        <!-- camel-kamelets has a separate release stream -->
+        <camel-kamelets.version>4.22.1</camel-kamelets.version>
+        <camel-quarkus.version>3.40.0</camel-quarkus.version>
+        <citrus.version>4.10.3</citrus.version>
+        <!-- Unify Spring: camel-quarkus-bom pins spring-web et al to 7.0.9 while
+             quarkus-bom and citrus are on 6.2.x; align all Spring to one 6.2.x line -->
+        <spring.version>6.2.19</spring.version>
+        <!-- Must match the Jetty version managed by the Quarkus platform (quarkus-bom);
+             citrus-http pulls jetty-ee10-servlet from the older 12.0.x line otherwise -->
+        <jetty.version>12.1.11</jetty.version>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.26.0</quarkus.platform.version>
+        <quarkus.platform.version>3.40.1.1</quarkus.platform.version>
         <quarkus.kubernetes-client.generate-rbac>false</quarkus.kubernetes-client.generate-rbac>
         <quarkus.container-image.insecure>true</quarkus.container-image.insecure>
         <quarkus.container-image.registry>localhost:5001</quarkus.container-image.registry>
@@ -58,6 +65,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Keep all Spring artifacts on a single 6.2.x line (imported first so it
+                 wins over camel-quarkus-bom, which otherwise pulls spring-web to 7.0.9) -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>${spring.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>quarkus-bom</artifactId>
@@ -65,10 +81,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- citrus-http drags jetty-ee10-servlet from the 12.0.x line; realign it to the
+                 platform Jetty version so it matches jetty-util/jetty-server (test-only) -->
+            <dependency>
+                <groupId>org.eclipse.jetty.ee10</groupId>
+                <artifactId>jetty-ee10-servlet</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>
                 <artifactId>camel-quarkus-bom</artifactId>
-                <version>${camel.quarkus.platform.version}</version>
+                <version>${camel-quarkus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -76,7 +99,7 @@
             <dependency>
                 <groupId>org.apache.camel.kamelets</groupId>
                 <artifactId>camel-kamelets</artifactId>
-                <version>${camel.version}</version>
+                <version>${camel-kamelets.version}</version>
             </dependency>
 
             <!-- Citrus test framework -->
