@@ -17,8 +17,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <!-- camel-kamelets has a separate release stream -->
-        <camel-kamelets.version>4.22.1</camel-kamelets.version>
         <camel-quarkus.version>3.40.0</camel-quarkus.version>
         <citrus.version>4.10.3</citrus.version>
         <!-- Unify Spring: camel-quarkus-bom pins spring-web et al to 7.0.9 while
@@ -27,6 +25,8 @@
         <!-- Must match the Jetty version managed by the Quarkus platform (quarkus-bom);
              citrus-http pulls jetty-ee10-servlet from the older 12.0.x line otherwise -->
         <jetty.version>12.1.11</jetty.version>
+        <!-- When upgrading Quarkus (e.g. to a newer LTS line), move the matching
+             pins in .github/dependabot.yml (quarkus-bom, camel-quarkus-bom) too -->
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.40.1.1</quarkus.platform.version>
         <quarkus.kubernetes-client.generate-rbac>false</quarkus.kubernetes-client.generate-rbac>
@@ -96,11 +96,8 @@
                 <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.apache.camel.kamelets</groupId>
-                <artifactId>camel-kamelets</artifactId>
-                <version>${camel-kamelets.version}</version>
-            </dependency>
+            <!-- camel-kamelets is managed by camel-quarkus-bom, in lockstep with
+                 the Camel core line the connectors build against -->
 
             <!-- Citrus test framework -->
             <dependency>

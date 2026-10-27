@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # Java connectors — multi-module Maven reactor rooted at the repo root
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      maven-dependencies:
+        patterns:
+          - "*"
+    ignore:
+      # Stay on the Quarkus 3.40 LTS line; patch releases (3.40.z) are fine
+      - dependency-name: "io.quarkus.platform:quarkus-bom"
+        versions: [">=3.41"]
+      # camel-quarkus must stay aligned with the Quarkus platform version
+      - dependency-name: "org.apache.camel.quarkus:camel-quarkus-bom"
+        versions: [">=3.41"]
+
+  # JSONata transformer
+  - package-ecosystem: "npm"
+    directory: "/transform-jsonata"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
