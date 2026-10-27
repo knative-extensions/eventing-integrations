@@ -18,13 +18,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <camel-quarkus.version>3.40.0</camel-quarkus.version>
-        <citrus.version>4.10.3</citrus.version>
-        <!-- Unify Spring: camel-quarkus-bom pins spring-web et al to 7.0.9 while
-             quarkus-bom and citrus are on 6.2.x; align all Spring to one 6.2.x line -->
-        <spring.version>6.2.19</spring.version>
-        <!-- Must match the Jetty version managed by the Quarkus platform (quarkus-bom);
-             citrus-http pulls jetty-ee10-servlet from the older 12.0.x line otherwise -->
-        <jetty.version>12.1.11</jetty.version>
+        <!-- Citrus 5.x targets the same Spring Framework line as camel-quarkus-bom
+             (Spring 7.0.x), so no spring-framework-bom override is needed here -->
+        <citrus.version>5.1.0</citrus.version>
         <!-- When upgrading Quarkus (e.g. to a newer LTS line), move the matching
              pins in .github/dependabot.yml (quarkus-bom, camel-quarkus-bom) too -->
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
@@ -65,28 +61,12 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Keep all Spring artifacts on a single 6.2.x line (imported first so it
-                 wins over camel-quarkus-bom, which otherwise pulls spring-web to 7.0.9) -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-framework-bom</artifactId>
-                <version>${spring.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>quarkus-bom</artifactId>
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <!-- citrus-http drags jetty-ee10-servlet from the 12.0.x line; realign it to the
-                 platform Jetty version so it matches jetty-util/jetty-server (test-only) -->
-            <dependency>
-                <groupId>org.eclipse.jetty.ee10</groupId>
-                <artifactId>jetty-ee10-servlet</artifactId>
-                <version>${jetty.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.camel.quarkus</groupId>

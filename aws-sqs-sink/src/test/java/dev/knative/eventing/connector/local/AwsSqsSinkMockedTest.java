@@ -18,7 +18,7 @@ package dev.knative.eventing.connector.local;
 
 import dev.knative.eventing.connector.AwsSqsSinkTestBase;
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
+import org.citrusframework.api.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.testcontainers.aws2.LocalStackContainer;
 import org.citrusframework.testcontainers.aws2.quarkus.LocalStackContainerSupport;
 import org.citrusframework.testcontainers.quarkus.ContainerLifecycleListener;

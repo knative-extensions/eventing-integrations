@@ -18,7 +18,7 @@ package dev.knative.eventing.connector.local;
 
 import dev.knative.eventing.connector.AwsS3SourceTestBase;
 import io.quarkus.test.junit.QuarkusTest;
-import org.citrusframework.actions.testcontainers.aws2.AwsService;
+import org.citrusframework.api.actions.testcontainers.aws2.AwsService;
 import org.citrusframework.http.endpoint.builder.HttpEndpoints;
 import org.citrusframework.http.security.HttpSecureConnection;
 import org.citrusframework.http.server.HttpServer;
