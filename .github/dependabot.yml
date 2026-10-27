@@ -17,12 +17,20 @@ updates:
       - dependency-name: "org.apache.camel.quarkus:camel-quarkus-bom"
         versions: [">=3.41"]
 
-  # JSONata transformer
+  # JSONata transformer — security fixes only; version-update PRs are paused
+  # via limit 0, while Dependabot security updates (repo setting) keep flowing
   - package-ecosystem: "npm"
     directory: "/transform-jsonata"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0
+
+  # GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
     groups:
-      npm-dependencies:
+      github-actions:
         patterns:
           - "*"
