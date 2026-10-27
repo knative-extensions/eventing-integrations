@@ -104,8 +104,11 @@ public abstract class AwsEventBridgeSinkTestBase {
                 .findFirst()
                 .orElseThrow(() -> new CitrusRuntimeException("Queue %s not found".formatted(sqsQueueName)));
 
+        // Long-poll for the EventBridge rule to deliver the message to the queue,
+        // so the verification does not race the (asynchronous) target dispatch
         ReceiveMessageResponse receiveMessageResponse = sqsClient.receiveMessage(b ->
-                b.queueUrl(queueUrl));
+                b.queueUrl(queueUrl)
+                 .waitTimeSeconds(10));
 
         Assertions.assertEquals(1, receiveMessageResponse.messages().size());
 
