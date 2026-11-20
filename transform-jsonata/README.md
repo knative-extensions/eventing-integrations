@@ -37,7 +37,7 @@ Assuming current working directory is `transform-jsonata`
 
 ```shell
 IMAGE_NAME="${KO_DOCKER_REPO}/transform-jsonata"
-docker build -t "${IMAGE_NAME}" -f Dockerfile . 
+docker build -t "${IMAGE_NAME}" -f Dockerfile .
 docker push "${IMAGE_NAME}"
 ```
 
